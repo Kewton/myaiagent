@@ -1,0 +1,13 @@
+python-dotenv
+langchain
+langchain-openai
+google-genai
+google-generativeai
+beautifulsoup4
+langgraph
+langchainhub
+gradio
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+html2text
