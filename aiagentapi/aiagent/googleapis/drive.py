@@ -1,4 +1,4 @@
-from googleapis.googleapi_services import get_googleapis_service
+from aiagent.googleapis.googleapi_services import get_googleapis_service
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 import os
 import io
@@ -141,6 +141,31 @@ def get_or_create_folder(folder_path):
     return parent_id
 
 
+def get_google_drive_file_links(file_id: str) -> dict | None:
+
+    try:
+        # files().get() を呼び出し、必要なフィールドを指定してファイルメタデータを取得
+        service = get_googleapis_service(SERVICE_NAME)
+        file_metadata = service.files().get(
+            fileId=file_id,
+            # fieldsパラメータで webViewLink と webContentLink をリクエスト
+            fields='id, name, webViewLink, webContentLink'
+        ).execute()
+
+        # 必要な情報を含む辞書を返す
+        links = {
+            'id': file_metadata.get('id'),
+            'name': file_metadata.get('name'),
+            'webViewLink': file_metadata.get('webViewLink'),      # ウェブ表示用リンク
+            'webContentLink': file_metadata.get('webContentLink') # ダウンロード/コンテンツリンク
+        }
+        return links
+
+    except Exception as e:
+        print(f"An error occurred while retrieving file links for ID '{file_id}': {e}")
+        return None
+
+
 def upload_file(file_name, file_path, mime_type, folder_id=None):
     """
 	- textファイル
@@ -149,6 +174,10 @@ def upload_file(file_name, file_path, mime_type, folder_id=None):
 	    mime_type = 'application/pdf'
 	- MP4ファイル (.mp4):
 	    mime_type = 'video/mp4'
+    - mp3ファイル（.mp3）
+        mime_type = 'audio/mpeg'
+    - wavファイル（.wav）
+        mime_type = 'audio/wav'
 	- JPEGファイル (.jpg):
 	    mime_type = 'image/jpeg'
 	- Excelファイル (.xlsx):
@@ -170,18 +199,18 @@ def upload_file(file_name, file_path, mime_type, folder_id=None):
 
 
 # Resumable Uploadを実行する関数
-def resumable_upload(file_name, file_path, mime_type, folder_id=None):
+def resumable_upload(save_file_name_in_drive, upload_file_path, mime_type, folder_id=None):
     service = get_googleapis_service(SERVICE_NAME)
 
     # アップロードするファイルのメタデータ
     # フォルダIDを指定した場合にメタデータに親フォルダを設定
     if folder_id:
-        file_metadata = {'name': file_name, 'parents': [folder_id]}
+        file_metadata = {'name': save_file_name_in_drive, 'parents': [folder_id]}
     else:
-        file_metadata = {'name': file_name}
+        file_metadata = {'name': save_file_name_in_drive}
 
     # Resumable Uploadの準備
-    media = MediaFileUpload(file_path, mimetype=mime_type, resumable=True)
+    media = MediaFileUpload(upload_file_path, mimetype=mime_type, resumable=True)
 
     # アップロード開始
     request = service.files().create(body=file_metadata, media_body=media, fields='id')
@@ -193,3 +222,4 @@ def resumable_upload(file_name, file_path, mime_type, folder_id=None):
             print(f"Uploaded {int(status.progress() * 100)}%")
 
     print(f"Upload Complete. File ID: {response.get('id')}")
+    return response.get('id')

@@ -4,6 +4,7 @@ from aiagent.googleapis.gmail.readonly import get_emails_by_keyword
 from aiagent.googleapis.gmail.send import send_email
 import os
 
+
 @tool
 def gmail_search_search_tool(keywrod: str, top: int = 5) -> Dict:
     """gmailからキーワード検索した結果をtopに指定した件数文返却します。"""

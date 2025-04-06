@@ -15,3 +15,4 @@ langchain-google-genai
 fastapi
 pydantic-settings
 uvicorn
+openai
