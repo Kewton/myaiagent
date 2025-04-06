@@ -1,5 +1,5 @@
-from googleapis.googleapi_services import get_googleapis_service
-from utils.html_operation import convert_html_to_markdown
+from aiagent.googleapis.googleapi_services import get_googleapis_service
+from aiagent.utils.html_operation import convert_html_to_markdown
 import base64
 from email.mime.text import MIMEText
 

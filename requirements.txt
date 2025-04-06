@@ -12,3 +12,6 @@ google-auth-httplib2
 google-auth-oauthlib
 html2text
 langchain-google-genai
+fastapi
+pydantic-settings
+uvicorn
