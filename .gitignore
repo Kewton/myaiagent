@@ -4,3 +4,6 @@ venv/
 *.log
 *.db
 .env
+ui/
+token/token.json
+token/credentials.json
