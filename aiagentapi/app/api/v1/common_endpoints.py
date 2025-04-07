@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException
 from app.schemas.sample import StatusReq
 from app.services.sample_service.sample import Sample1, Sample2
 from aiagent.aiagent.StandardAiAgent import StandardAiAgent
+from app.schemas.standardAiAgent import AtandardAiAgentRequest, AtandardAiAgentResponse
+
 
 router = APIRouter()
 
@@ -13,19 +15,14 @@ def home_hello_world():
     return {"message": "Hello World"}
 
 
-@router.get("/aiagent",
+@router.post("/aiagent",
             summary="Hello World",
             description="Hello Worldです。疎通確認に使用してください。")
-def aiagent():
+def aiagent(request: AtandardAiAgentRequest):
     agent_executor = StandardAiAgent()
-    user_input = """
-    2025/4/7の葛飾区の天気を調べてください
-    """
-    result = agent_executor.invoke({"input": user_input})
-    #final_answer = result.get("output", result)
-    #print("======")
-    #print(final_answer)
-    return {"result": result}
+    result = agent_executor.invoke(request.user_input)
+    _response = {"result": result}
+    return AtandardAiAgentResponse(**_response)
 
 
 @router.get("/sample/1",

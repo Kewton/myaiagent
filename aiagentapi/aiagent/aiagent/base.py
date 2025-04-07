@@ -23,7 +23,8 @@ class AiAgentBase(ABC):
             # AgentExecutorのinvokeメソッドは辞書を返すことが多い
             self.chat_history.append({"role": "user", "content": user_input})
             result = self.myaiagent.invoke({"input": user_input})
-            final_answer = result.get("output", result)
+            # final_answer = result.get("output", result)
+            final_answer = result.get("output", str(result) if isinstance(result, dict) else result)
             intermediate_steps = result.get("intermediate_steps", [])
             
             # 中間ステップを整形
@@ -32,7 +33,7 @@ class AiAgentBase(ABC):
             # 最終回答と中間出力（思考プロセス）を結合
             full_output = f"Final Answer:\n{final_answer}\n\n---\nThought Process:\n{formatted_steps}"
             self.chat_history.append({"role": "assistant", "content": full_output})
-            return full_output
+            return self.chat_history
         except Exception as e:
             print(f"Error during agent invocation (ID: {self.exeid}): {e}")
             # エラー時の挙動を決める (エラーメッセージを返す、例外を再raiseするなど)
