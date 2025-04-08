@@ -8,6 +8,8 @@ from aiagent.googleapis import gmail_search_search_tool, SendEmailTool
 import os
 from aiagent.aiagent.base import AiAgentBase
 from aiagent.aiagent.common import isChatGPTImageAPI, isGemini
+from aiagent.tool.url2markdown import getMarkdown_tool
+from aiagent.tool.generate_podcast_script import generate_podcast_mp3_and_upload_tool, generate_podcast_script_tool
 
 
 tts_upload_tool = TextToSpeechAndUploadTool()
@@ -22,7 +24,10 @@ class StandardAiAgent(AiAgentBase):
             google_search_tool,
             send_email_tool,
             gmail_search_search_tool,
-            tts_upload_tool
+            tts_upload_tool,
+            getMarkdown_tool,
+            generate_podcast_mp3_and_upload_tool,
+            generate_podcast_script_tool
     ]
 
     def __init__(

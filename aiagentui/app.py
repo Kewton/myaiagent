@@ -9,6 +9,14 @@ AIAGENT_API_URI = os.getenv('AIAGENT_API_URI', "192.168.11.8")
 AIAGENT_PORT = os.getenv('AIAGENT_PORT', "31953")
 AIAGENT_API_PATH = os.getenv('AIAGENT_API_PATH', "/aiagent-api/v1/aiagent")
 
+MODEL_LIST = []
+if os.getenv('MODEL_LIST', "gemini-1.5-pro"):
+    # 1. カンマ(,)で文字列を分割する -> ['server1...', 'server2...', ' 192...', ' server3... ']
+    # 2. 各要素の前後の空白を strip() で除去する -> ['server1...', 'server2...', '192...', 'server3...']
+    # 3. 空文字列になった要素を除去する (例: ",," のような場合)
+    MODEL_LIST = [model.strip() for model in os.getenv('MODEL_LIST', "gemini-1.5-pro").split(',') if model.strip()]
+
+
 # レイアウトの調整（スマホ対応）
 st.set_page_config(layout="wide")
 
@@ -16,8 +24,8 @@ st.set_page_config(layout="wide")
 st.title("AIエージェントUI")
 
 # モード選択
-modelname = st.selectbox("モデルを選択してください", ["gemini-1.5-pro", "gpt-4o-mini"])
-max_iterations = st.selectbox("最大試行回数を選択してください", range(1, 10))
+modelname = st.selectbox("モデルを選択してください", MODEL_LIST)
+max_iterations = st.selectbox("最大イテレーション数を選択してください", range(4, 12))
 
 # 入力フィールド
 user_input = st.text_area("メッセージを入力してください", height=100)
