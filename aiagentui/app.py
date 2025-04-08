@@ -16,6 +16,13 @@ if os.getenv('MODEL_LIST', "gemini-1.5-pro"):
     # 3. 空文字列になった要素を除去する (例: ",," のような場合)
     MODEL_LIST = [model.strip() for model in os.getenv('MODEL_LIST', "gemini-1.5-pro").split(',') if model.strip()]
 
+# テンプレートの定義（名前と本文）
+PROMPT_TEMPLATES = {
+    "なし（手動入力）": "",
+    "記事要約": "以下の記事を要約し、メール送信してください。：\n\n＜ここに記事本文を貼り付けてください＞",
+    "ポッドキャスト生成": "以下の記事からポッドキャストを生成してGoogleDriveにアップし、ポッドキャストの台本とリンクをメール送信してください：\n\n＜ここに記事のURLを貼り付けてください＞",
+    "コードレビュー依頼": "以下のコードの改善点をレビューしてください：\n\n```python\n# ここにコードを貼ってください\n```",
+}
 
 # レイアウトの調整（スマホ対応）
 st.set_page_config(layout="wide")
@@ -27,8 +34,26 @@ st.title("AIエージェントUI")
 modelname = st.selectbox("モデルを選択してください", MODEL_LIST)
 max_iterations = st.selectbox("最大イテレーション数を選択してください", range(4, 12))
 
+# プロンプトテンプレート選択
+selected_template_name = st.selectbox("テンプレートを選択してください", list(PROMPT_TEMPLATES.keys()))
+
+# テキストエリアにテンプレート内容を初期表示（選択時のみ変更）
+if "last_template" not in st.session_state:
+    print(st.session_state)
+    st.session_state.last_template = ""
+
+if selected_template_name != st.session_state.last_template:
+    print(st.session_state.last_template)
+    st.session_state.user_input = PROMPT_TEMPLATES[selected_template_name]
+    st.session_state.last_template = selected_template_name
+
 # 入力フィールド
-user_input = st.text_area("メッセージを入力してください", height=100)
+user_input = st.text_area(
+    "メッセージを入力してください",
+    value=st.session_state.get("user_input", ""),
+    height=100,
+    key="user_input"
+)
 
 
 # 送信ボタン
