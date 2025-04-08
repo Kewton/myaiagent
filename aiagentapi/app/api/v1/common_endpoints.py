@@ -1,6 +1,4 @@
 from fastapi import APIRouter, HTTPException
-from app.schemas.sample import StatusReq
-from app.services.sample_service.sample import Sample1, Sample2
 from aiagent.aiagent.StandardAiAgent import StandardAiAgent
 from app.schemas.standardAiAgent import AtandardAiAgentRequest, AtandardAiAgentResponse
 
@@ -16,40 +14,12 @@ def home_hello_world():
 
 
 @router.post("/aiagent",
-            summary="Hello World",
-            description="Hello Worldです。疎通確認に使用してください。")
+             summary="AIエージェントを実行します",
+             description="AIエージェントを実行します")
 def aiagent(request: AtandardAiAgentRequest):
-    agent_executor = StandardAiAgent()
+    agent_executor = StandardAiAgent(
+        model_name=request.model_name,
+        max_iterations=request.max_iterations)
     result = agent_executor.invoke(request.user_input)
     _response = {"result": result}
     return AtandardAiAgentResponse(**_response)
-
-
-@router.get("/sample/1",
-            summary="get sample",
-            description="servicesのクラスを使用するサンプル")
-def sampole_1():
-    sample_1 = Sample1()
-    return {"message": sample_1.do("test")}
-
-
-@router.post("/sample/2",
-             summary="post sample",
-             description="schemasとservicesのクラスとloggerを使用するサンプル")
-def sampole_2(request: StatusReq):
-    # validation
-    if request.user == "a":
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # main
-    sampleservice = Sample2()
-    sampleservice.do(request)
-
-    # respponse
-    if sampleservice.result:
-        return sampleservice.response
-    else:
-        raise HTTPException(
-            status_code=sampleservice.status_code,
-            detail=sampleservice.detail
-        )

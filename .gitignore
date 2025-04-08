@@ -8,3 +8,4 @@ ui/
 aiagentapi/token/token.json
 aiagentapi/token/credentials.json
 .DS_Store
+k3s

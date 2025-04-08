@@ -25,18 +25,17 @@ services:
 
   # Gradio フロントエンドサービス
   frontend:
-    build: ./gradioui         # frontend ディレクトリの Dockerfile を使ってビルド
-    container_name: gradioui_v0_1_1 # コンテナ名を指定 (オプション)
+    build: ./aiagentui         # frontend ディレクトリの Dockerfile を使ってビルド
+    container_name: aiagentui_v0_1_1 # コンテナ名を指定 (オプション)
     ports:
-      - "7860:7860"         # ホストのポート 7860 をコンテナのポート 7860 にマッピング
+      - "8502:8502"         # ホストのポート 7860 をコンテナのポート 7860 にマッピング
     environment:
       # Gradio アプリ (app.py) に FastAPI の URL を環境変数として渡す
       # 'backend' は上の services で定義した FastAPI サービスのキー (サービス名)
       # Docker の内部ネットワーク経由でアクセスするため、サービス名で名前解決できる
-      - PROTOCOL=http
-      - FASTAPI_SERVICE_NAME=backend
-      - FASTAPI_PORT=8000
-      - API_ENDPOINT_PATH=/my_root/v1/aiagent
+      - AIAGENT_API_URI=backend
+      - AIAGENT_PORT=8000
+      - AIAGENT_API_PATH=/aiagent-api/v1/aiagent
     depends_on:
       - backend             # backend サービスが起動してから frontend を起動する
     networks:

@@ -8,7 +8,7 @@ app = FastAPI(
     title="My API",
     description="APIドキュメント",
     version="1.0.0",
-    root_path="/my_root",
+    root_path="/aiagent-api",
     swagger_ui_parameters={
         "docExpansion": "list",  # サイドバーにAPIリンクを表示
         "defaultModelsExpandDepth": -1  # モデルはサイドバーに表示しない

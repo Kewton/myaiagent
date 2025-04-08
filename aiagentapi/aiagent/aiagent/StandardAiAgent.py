@@ -43,8 +43,8 @@ class StandardAiAgent(AiAgentBase):
             return_intermediate_steps (bool): 中間ステップを返すか。
         """
         # インスタンス変数を設定
-        self.model_name = model_name
-        self.max_iterations = max_iterations
+        self.model_name = model_name if model_name is not None else self.DEFAULT_MODEL
+        self.max_iterations = max_iterations if max_iterations is not None else self.DEFAULT_MAX_ITERATIONS
         self.verbose = verbose
         self.return_intermediate_steps = return_intermediate_steps
         self.tools = tools

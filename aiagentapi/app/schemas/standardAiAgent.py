@@ -4,6 +4,8 @@ from typing import List, Dict, Any # List, Dict, Any をインポート
 
 class AtandardAiAgentRequest(BaseModel):
     user_input: str
+    model_name: str | None = None
+    max_iterations: int | None = None
 
 
 # チャットメッセージの形式を表すモデル
