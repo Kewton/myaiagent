@@ -8,6 +8,10 @@ cd aiagentui
 docker build --platform linux/arm64 -t mynoo/aiagentui:v0.1.1 . --no-cache
 docker push mynoo/aiagentui:v0.1.1
 
+cd gradioui
+docker build --platform linux/arm64 -t mynoo/gradioui:v0.1.1 . --no-cache
+docker push mynoo/gradioui:v0.1.1
+
 docker run -it　-p 8000:8000 --rm mynoo/aiagentapi:latest
 docker run -d -p 8000:8000 mynoo/aiagentapi:v0.1.1
 ```

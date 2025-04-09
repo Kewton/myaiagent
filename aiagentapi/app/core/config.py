@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     CONFIG_TEST: str = Field(default="sss", env="CONFIG_TEST")
     LOG_DIR: str = Field(default="./", env="LOG_DIR")
     LOG_LEVEL: str = Field(default="INFO", env="LOG_LEVEL")
+    PODCAST_SCRIPT_DEFAULT_MODEL: str = Field(default="gpt-4o-mini", env="PODCAST_SCRIPT_DEFAULT_MODEL")
 
     class Config:
         env_file = ".env"  # .envファイルを使用して環境変数を読み込む設定

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from aiagent.aiagent.StandardAiAgent import StandardAiAgent
 from app.schemas.standardAiAgent import AtandardAiAgentRequest, AtandardAiAgentResponse
-
+from datetime import datetime
 
 router = APIRouter()
 
@@ -21,7 +21,14 @@ def aiagent(request: AtandardAiAgentRequest):
         agent_executor = StandardAiAgent(
             model_name=request.model_name,
             max_iterations=request.max_iterations)
-        result = agent_executor.invoke(request.user_input)
+        _input = f"""
+        # メタ情報:
+        - 現在の時刻は「{datetime.now()}」です。
+
+        # 入力情報
+        {request.user_input}
+        """
+        result = agent_executor.invoke(_input)
         _response = {"result": result}
         return AtandardAiAgentResponse(**_response)
 

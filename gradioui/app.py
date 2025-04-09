@@ -3,83 +3,119 @@ import requests
 import os
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
-
-# URL ="http://127.0.0.1:8000/my_root/v1/aiagent"
+# --- API設定 (変更なし) ---
 PROTOCOL = os.getenv("PROTOCOL", "http")
-FASTAPI_SERVICE_NAME = os.getenv("FASTAPI_SERVICE_NAME", "backend")  # docker-compose のサービス名
+FASTAPI_SERVICE_NAME = os.getenv("FASTAPI_SERVICE_NAME", "backend")
 FASTAPI_PORT = os.getenv("FASTAPI_PORT", "8000")
-API_ENDPOINT_PATH = os.getenv("API_ENDPOINT_PATH", "/my_root/v1/aiagent")  # エンドポイントパス
-
+API_ENDPOINT_PATH = os.getenv("API_ENDPOINT_PATH", "/my_root/v1/aiagent")
 URL = f"{PROTOCOL}://{FASTAPI_SERVICE_NAME}:{FASTAPI_PORT}{API_ENDPOINT_PATH}"
 
 
-def format_intermediate_steps(intermediate_steps):
-    log = ""
-    for step_index, (action, tool_result) in enumerate(intermediate_steps):  # enumerate を使うとデバッグしやすい
-        log += f"\n--- Step {step_index + 1} ---"
-        log += f"\nAction: {action.log.strip()}"  # actionも整形する場合
-
-        # tool_result の型を確認して処理を分岐
-        observation_str = ""
-        if isinstance(tool_result, str):
-            # tool_resultが文字列の場合
-            observation_str = tool_result.strip()
-        elif isinstance(tool_result, dict):
-            # tool_resultが辞書の場合 (想定していた元の処理に近い)
-            # getのデフォルト値は空文字列ではなくNoneの方が区別しやすいかも
-            result_value = tool_result.get("result")
-            if isinstance(result_value, str):
-                observation_str = result_value.strip()
-            elif result_value is not None:
-                # resultキーの値が文字列でない場合の処理 (例: オブジェクトを文字列化)
-                observation_str = str(result_value)
-            else:
-                # resultキーが存在しない場合の処理 (辞書全体を文字列化など)
-                observation_str = str(tool_result) # もしくは "" や エラーメッセージ
-        elif isinstance(tool_result, list):
-            # ★★★ tool_resultがリストの場合の処理 ★★★
-            # リストの各要素を文字列にして結合する例
-            observation_str = ", ".join(str(item) for item in tool_result)
-            # もしくは他の適切な表現方法で文字列化する
-            # observation_str = f"List results: {tool_result}"
-        else:
-            # その他の型の場合 (None など)
-            observation_str = str(tool_result)  # とりあえず文字列化
-
-        log += f"\nObservation: {observation_str}"
-
-    return log.strip()  # 最終的なログの前後空白を削除
-
-
-# Gradio のチャット関数（中間出力も整形してUIに反映）
+# --- チャット処理関数 (エラーハンドリング、履歴更新ロジック改善) ---
 def chat(user_input, chat_history):
     chat_history = chat_history or []
+    user_input_stripped = user_input.strip()  # 前後の空白を除去
+
+    # 空のメッセージは送信しない
+    if not user_input_stripped:
+        return "", chat_history, chat_history  # 入力欄はクリア、履歴はそのまま
+
+    # ユーザーメッセージを履歴に追加 (role/content形式)
+    chat_history.append({"role": "user", "content": user_input_stripped})
+
     parameters = {
-        "user_input": user_input
+        "model_name": "chatgpt-4o-latest",
+        "user_input": user_input_stripped
     }
-    response = requests.post(URL, json=parameters)
-    result = response.json()
-    print(result)
-    chat_history.append(result["result"][0])
-    chat_history.append(result["result"][1])
+
+    try:
+        # API呼び出し (タイムアウトとエラーチェック追加)
+        response = requests.post(URL, json=parameters, timeout=300)
+        response.raise_for_status()  # 4xx, 5xxエラーで例外を発生させる
+        result = response.json()
+
+        # --- アシスタントの応答を抽出 ---
+        # バックエンドの応答形式に合わせて調整が必要
+        # 例1: {"result": [{"role":"user", ...}, {"role":"assistant", "content": "..."}]}
+        if "result" in result and isinstance(result.get("result"), list) and len(result["result"]) > 1 and isinstance(result["result"][1], dict):
+            assistant_msg = result["result"][1] # 2番目の要素をアシスタント応答と仮定
+            if assistant_msg.get("role") == "assistant" and "content" in assistant_msg:
+                chat_history.append(assistant_msg)
+            else:
+                # 想定形式だが中身が違う場合
+                chat_history.append({"role": "assistant", "content": f"Error: Unexpected assistant message format in result list."})
+
+        # 例2: シンプルに {"assistant_reply": "..."} のような形式の場合
+        elif "assistant_reply" in result and isinstance(result["assistant_reply"], str):
+            chat_history.append({"role": "assistant", "content": result["assistant_reply"]})
+
+        # ★★★ もし上記以外、元のコードのように result["result"] が応答テキストリストなど、
+        # 特殊な形式の場合は、ここの抽出ロジックをそれに合わせてください ★★★
+
+        else:
+            # 予期しない応答形式の場合
+            chat_history.append({"role": "assistant", "content": f"Error: Could not parse assistant response from backend. Received: {str(result)[:200]}"}) # 応答の一部を表示
+
+    except requests.exceptions.Timeout:
+        print("API Request Timed Out")
+        chat_history.append({"role": "assistant", "content": "Error: The request to the backend timed out."})
+    except requests.exceptions.RequestException as e:
+        print(f"API Request Error: {e}")
+        chat_history.append({"role": "assistant", "content": f"Error communicating with backend: {e}"})
+    except Exception as e:
+        # JSONデコードエラーなどもここで捕捉
+        print(f"Chat Processing Error: {e}")
+        chat_history.append({"role": "assistant", "content": f"An internal error occurred: {e}"})
+
+    # 入力欄をクリアし、更新された履歴を返す
     return "", chat_history, chat_history
 
 
-# Gradio UI の構築（UIはそのままで内部ロジックのみ変更）
+# --- Gradio UI の構築 (スマホ対応) ---
+# Softテーマを適用
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot(label="Assistant", height=800, type="messages")
-    state = gr.State([])
-    with gr.Row():
-        user_input = gr.Textbox(lines=1, label="Chat Message")
-        submit = gr.Button("Submit")
+    gr.Markdown("## AI Agent Chat")  # タイトルを追加
+
+    # チャットボットの高さを調整し、スクロール可能に
+    chatbot = gr.Chatbot(
+        label="Assistant",
+        height=600,             # 高さをスマホ向けに調整
+        type='messages'
+        # bubble_full_width=False # 吹き出しの幅を調整
+        )
+    state = gr.State([])  # チャット履歴を保持
+
+    # 入力要素を縦に配置 (Columnを使用)
+    with gr.Column():
+        user_input = gr.Textbox(
+            lines=1,  # シングルライン入力
+            label="Your Message",
+            placeholder="Type your message and press Enter or click Submit...",  # プレースホルダーを追加
+            # scale=4 # Column内では scale はあまり意味がないかも
+            )
+        submit = gr.Button(
+            "Submit",
+            variant="primary"  # ボタンを強調表示
+            # scale=1
+            )
+
+    # Enterキーでの送信を有効化
+    user_input.submit(
+        chat,
+        inputs=[user_input, state],
+        outputs=[user_input, chatbot, state]  # 出力をchatbotとstateに反映
+    )
+    # ボタンクリックでの送信
     submit.click(
         chat,
         inputs=[user_input, state],
-        outputs=[user_input, chatbot, state]
+        outputs=[user_input, chatbot, state]  # 出力をchatbotとstateに反映
     )
 
-demo.launch(server_name="0.0.0.0", server_port=7860)
+# サーバー起動設定 (変更なし)
+demo.launch(server_name="127.0.0.1", server_port=7860)
 # demo.launch()
+
+# 不要になった関数を削除 (今回は format_intermediate_steps)

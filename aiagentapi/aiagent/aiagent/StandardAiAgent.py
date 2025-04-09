@@ -10,6 +10,7 @@ from aiagent.aiagent.base import AiAgentBase
 from aiagent.aiagent.common import isChatGPTImageAPI, isGemini
 from aiagent.tool.url2markdown import getMarkdown_tool
 from aiagent.tool.generate_podcast_script import generate_podcast_mp3_and_upload_tool, generate_podcast_script_tool
+from aiagent.tool.generate_melmaga_script import generate_melmaga_script_tool
 
 
 tts_upload_tool = TextToSpeechAndUploadTool()
@@ -27,7 +28,8 @@ class StandardAiAgent(AiAgentBase):
             tts_upload_tool,
             getMarkdown_tool,
             generate_podcast_mp3_and_upload_tool,
-            generate_podcast_script_tool
+            generate_podcast_script_tool,
+            generate_melmaga_script_tool
     ]
 
     def __init__(
