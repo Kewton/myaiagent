@@ -28,11 +28,12 @@ PROMPT_TEMPLATES = {
 st.set_page_config(layout="wide")
 
 # タイトル
-st.title("AIエージェントUI")
+st.title("AIエージェント")
 
 # モード選択
 modelname = st.selectbox("モデルを選択してください", MODEL_LIST)
 max_iterations = st.selectbox("最大イテレーション数を選択してください", range(4, 12))
+thought_process_Flg = st.selectbox("思考プロセスを出力しますか？", [False, True])
 
 # プロンプトテンプレート選択
 selected_template_name = st.selectbox("テンプレートを選択してください", list(PROMPT_TEMPLATES.keys()))
@@ -51,7 +52,7 @@ if selected_template_name != st.session_state.last_template:
 user_input = st.text_area(
     "メッセージを入力してください",
     value=st.session_state.get("user_input", ""),
-    height=100,
+    height=250,
     key="user_input"
 )
 
@@ -65,10 +66,9 @@ if st.button("送信"):
             parameters = {
                 "user_input": user_input,
                 "model_name": modelname,
-                "max_iterations": max_iterations
+                "max_iterations": max_iterations,
+                "thought_process_Flg": thought_process_Flg
             }
-            print(api_url)
-            print(parameters)
             response = requests.post(api_url, json=parameters)
             
             # レスポンスの処理

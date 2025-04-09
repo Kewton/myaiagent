@@ -22,13 +22,13 @@ def aiagent(request: AtandardAiAgentRequest):
             model_name=request.model_name,
             max_iterations=request.max_iterations)
         _input = f"""
-        # メタ情報:
+        ### メタ情報:
         - 現在の時刻は「{datetime.now()}」です。
 
-        # 入力情報
+        ### 入力情報
         {request.user_input}
         """
-        result = agent_executor.invoke(_input)
+        result = agent_executor.invoke(_input, request.thought_process_Flg)
         _response = {"result": result}
         return AtandardAiAgentResponse(**_response)
 

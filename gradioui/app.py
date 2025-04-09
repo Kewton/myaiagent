@@ -115,7 +115,7 @@ with gr.Blocks() as demo:
     )
 
 # サーバー起動設定 (変更なし)
-demo.launch(server_name="127.0.0.1", server_port=7860)
+demo.launch(server_name="0.0.0.0", server_port=7860)
 # demo.launch()
 
 # 不要になった関数を削除 (今回は format_intermediate_steps)

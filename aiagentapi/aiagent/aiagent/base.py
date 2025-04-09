@@ -15,7 +15,7 @@ class AiAgentBase(ABC):
         """サブクラスで AgentExecutor を生成して返す"""
         pass
 
-    def invoke(self, user_input):
+    def invoke(self, user_input, thoughtProcessFlg=True):
         """エージェントを実行し、最終的な出力を返す"""
         if not self.myaiagent:
             raise RuntimeError("AgentExecutor has not been initialized.")
@@ -31,7 +31,10 @@ class AiAgentBase(ABC):
             formatted_steps = self.format_intermediate_steps(intermediate_steps)
             
             # 最終回答と中間出力（思考プロセス）を結合
-            full_output = f"Final Answer:\n{final_answer}\n\n---\nThought Process:\n{formatted_steps}"
+            if thoughtProcessFlg:
+                full_output = f"Final Answer:\n{final_answer}\n\n---\nThought Process:\n{formatted_steps}"
+            else:
+                full_output = final_answer
             self.chat_history.append({"role": "assistant", "content": full_output})
             return self.chat_history
         except Exception as e:

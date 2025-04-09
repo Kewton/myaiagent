@@ -8,7 +8,7 @@ import uuid
 from pathlib import Path
 
 
-def getMarkdown(url):
+def getMarkdown(url, isUpload=True):
     try:
         result = {
             "state": "failed",
@@ -23,25 +23,26 @@ def getMarkdown(url):
             result["state"] = "success"
             result["result"] = markdown_content
             
-            # マークダウンファイル生成
-            temp_dir = Path("./temp")
-            try:
-                temp_dir.mkdir(parents=True, exist_ok=True)
-            except OSError as e:
-                return f"エラー: 一時ディレクトリ '{temp_dir}' の作成に失敗しました: {e}"
-            unique_filename = f"{uuid.uuid4()}.md"
-            md_file_path = temp_dir / unique_filename
+            if isUpload:
+                # マークダウンファイル生成
+                temp_dir = Path("./temp")
+                try:
+                    temp_dir.mkdir(parents=True, exist_ok=True)
+                except OSError as e:
+                    return f"エラー: 一時ディレクトリ '{temp_dir}' の作成に失敗しました: {e}"
+                unique_filename = f"{uuid.uuid4()}.md"
+                md_file_path = temp_dir / unique_filename
 
-            try:
-                with open(md_file_path, 'w', encoding='utf-8') as f:
-                    f.write(markdown_content)
-            except IOError as e:
-                print(f"ファイルの書き込みエラー: {e}")
+                try:
+                    with open(md_file_path, 'w', encoding='utf-8') as f:
+                        f.write(markdown_content)
+                except IOError as e:
+                    print(f"ファイルの書き込みエラー: {e}")
 
-            # googl drive にアップロード
-            folder_id = get_or_create_folder("./MyAiAgent/knowledge")
-            upload_file(f"{url}.md", md_file_path, 'text/plain', folder_id)
-            delete_file(str(md_file_path))
+                # googl drive にアップロード
+                folder_id = get_or_create_folder("./MyAiAgent/knowledge")
+                upload_file(f"{url}.md", md_file_path, 'text/plain', folder_id)
+                delete_file(str(md_file_path))
             return result
         else:
             return str(response.status_code) + "エラー"

@@ -6,6 +6,7 @@ class AtandardAiAgentRequest(BaseModel):
     user_input: str
     model_name: str | None = None
     max_iterations: int | None = None
+    thought_process_Flg: bool = True
 
 
 # チャットメッセージの形式を表すモデル

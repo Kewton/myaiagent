@@ -107,7 +107,7 @@ def googleSearchAgent(_input: str) -> GoogleSearchResult:
 
     markdowns.append({"GoogleApiResponse":response.text})
     for uri in uris:
-        markdowns.append(getMarkdown(uri))
+        markdowns.append(getMarkdown(uri, False))
 
     # pydanticモデルで結果を生成
     result_model = GoogleSearchResult(
