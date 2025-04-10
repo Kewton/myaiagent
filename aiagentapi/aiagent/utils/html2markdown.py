@@ -60,7 +60,7 @@ def convert_html_to_markdown(html_content):
     # リンクを無視する
     converter.ignore_links = True
     # 画像を無視する
-    converter.ignore_images = False
+    converter.ignore_images = True
     # 幅制限を無効にする
     converter.body_width = 0
 
@@ -81,7 +81,7 @@ def html_to_markdown(html_content):
     converter = html2text.HTML2Text()
     converter.body_width = 0
     converter.ignore_links = False
-    converter.ignore_images = False
+    converter.ignore_images = True
     converter.bypass_tables = False
     converter.single_line_break = True
     converter.code_style = True  # コードブロックを適切に処理
