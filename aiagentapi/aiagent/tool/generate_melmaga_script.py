@@ -1,9 +1,19 @@
 from openai import OpenAI
 from langchain.tools import tool
+import os
+from aiagent.utils.execllm import execLlmApi
+
+
+PODCAST_SCRIPT_DEFAULT_MODEL = os.getenv('PODCAST_SCRIPT_DEFAULT_MODEL', "gpt-4o-mini")
 
 
 @tool
-def generate_melmaga_script_tool(input_info: str, model_name: str = "gpt-4o"): # model_name を引数に追加
+def generate_melmaga_script_tool(input_info: str):  # model_name を引数に追加
+    """指定された情報とモデル名からメルマガを生成する"""
+    return generate_melmaga_script(input_info, PODCAST_SCRIPT_DEFAULT_MODEL)
+
+
+def generate_melmaga_script(input_info: str, model_name: str = "gpt-4o-mini"):  # model_name を引数に追加
     """指定された情報とモデル名からメルマガを生成する"""
     client = OpenAI()
 
@@ -29,8 +39,9 @@ def generate_melmaga_script_tool(input_info: str, model_name: str = "gpt-4o"): #
         {"role": "user", "content": _input}
     ]
 
-    response = client.chat.completions.create(
-        model=model_name,
-        messages=_messages
-    )
-    return response.choices[0].message.content
+    return execLlmApi(model_name, _messages)
+#    response = client.chat.completions.create(
+#        model=model_name,
+#        messages=_messages
+#    )
+#    return response.choices[0].message.content

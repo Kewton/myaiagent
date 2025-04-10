@@ -32,7 +32,7 @@ st.title("AIエージェント")
 
 # モード選択
 modelname = st.selectbox("モデルを選択してください", MODEL_LIST)
-max_iterations = st.selectbox("最大イテレーション数を選択してください", range(4, 12))
+max_iterations = st.selectbox("最大イテレーション数を選択してください", range(6, 15))
 thought_process_Flg = st.selectbox("思考プロセスを出力しますか？", [False, True])
 
 # プロンプトテンプレート選択

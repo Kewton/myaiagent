@@ -16,6 +16,7 @@ services:
       MAIL_TO: ${MAIL_TO}
       LOG_DIR: ${LOG_DIR}
       LOG_LEVEL: ${LOG_LEVEL}
+      PODCAST_SCRIPT_DEFAULT_MODEL: ${PODCAST_SCRIPT_DEFAULT_MODEL}
     # ポートをホストに公開する必要は必ずしもない (Gradioから直接アクセスするため)
     # デバッグ用に公開する場合はコメントアウトを外す
     # ports:

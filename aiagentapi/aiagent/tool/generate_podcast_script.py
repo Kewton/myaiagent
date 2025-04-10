@@ -4,8 +4,10 @@ from aiagent.tool.tts_and_upload_drive import tts_and_upload_drive
 from aiagent.utils.generate_subject_from_text import generate_subject_from_text
 from langchain.tools import tool
 import os
+from aiagent.utils.execllm import execLlmApi
 
-PODCAST_SCRIPT_DEFAULT_MODEL = os.getenv('PODCAST_SCRIPT_DEFAULT_MODEL', "chatgpt-4o-latest")
+
+PODCAST_SCRIPT_DEFAULT_MODEL = os.getenv('PODCAST_SCRIPT_DEFAULT_MODEL', "gpt-4o-mini")
 
 class PodcastScriptInput(BaseModel):
     """ポッドキャスト台本生成ツールの入力"""
@@ -78,7 +80,7 @@ def generate_podcast_mp3_and_upload_tool(topic_details: str, model_name: str = P
         return f"エラー: 音声化またはアップロード中に問題が発生しました - {e}"
 
 
-def generate_podcast_script(input_info: str, model_name: str = "gpt-4o"): # model_name を引数に追加
+def generate_podcast_script(input_info: str, model_name: str = "gpt-4o-mini"): # model_name を引数に追加
     """指定された情報とモデル名からポッドキャスト台本を生成する"""
     client = OpenAI()
 
@@ -104,8 +106,10 @@ def generate_podcast_script(input_info: str, model_name: str = "gpt-4o"): # mode
         {"role": "user", "content": _input}
     ]
 
-    response = client.chat.completions.create(
-        model=model_name,
-        messages=_messages
-    )
-    return response.choices[0].message.content
+    return execLlmApi(model_name, _messages)
+
+    #response = client.chat.completions.create(
+    #    model=model_name,
+    #    messages=_messages
+    #)
+    #return response.choices[0].message.content
