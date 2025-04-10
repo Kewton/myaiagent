@@ -1,5 +1,5 @@
 from openai import OpenAI
-from google import genai
+import google.generativeai as genai
 import os
 
 
@@ -8,9 +8,7 @@ chatgptapi_client = OpenAI(
 )
 
 
-gemini_client = genai.Client(
-    api_key=os.environ.get("GEMINI_API_KEY"),
-)
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 
 def isChatGptAPI(_selected_model):
@@ -82,6 +80,28 @@ def buildInpurtMessages(_messages, encoded_file):
     return _inpurt_messages, _systemrole
 
 
+def buildInpurtMessagesForGemini(_messages):
+    system_instruction = None
+    contents_for_api = []
+
+    for msg in _messages:
+        role = msg.get("role")
+        content = msg.get("content")
+        if not role or not content:
+            continue
+
+        if role == "system":
+            system_instruction = content
+        elif role == "user":
+            # 正しい形式: 'parts' キーの中に {'text': ...} のリストを入れる
+            contents_for_api.append({'role': 'user', 'parts': [{'text': content}]})
+        elif role == "assistant" or role == "model":
+            # 正しい形式: 'parts' キーの中に {'text': ...} のリストを入れる
+            contents_for_api.append({'role': 'model', 'parts': [{'text': content}]})
+
+    return contents_for_api, system_instruction
+
+
 def execLlmApi(_selected_model, _messages, encoded_file=""):
     if isChatGptAPI(_selected_model):
         if isChatGPTImageAPI(_selected_model) and len(encoded_file) > 0:
@@ -106,8 +126,8 @@ def execLlmApi(_selected_model, _messages, encoded_file=""):
         return response.choices[0].message.content
 
     elif isChatGPT_o(_selected_model):
+        # ToDo
         #_inpurt_messages, _systemrole = buildInpurtMessages(_messages, encoded_file)
-
         response = chatgptapi_client.chat.completions.create(
             model=_selected_model,
             messages=_messages
@@ -116,14 +136,15 @@ def execLlmApi(_selected_model, _messages, encoded_file=""):
         return response.choices[0].message.content
 
     elif isGemini(_selected_model):
-        #_inpurt_messages, _systemrole = buildInpurtMessages(_messages, encoded_file)
-        print(_messages)
-        response = gemini_client.models.generate_content(
-            model=_selected_model,
-            contents=_messages
+        _inpurt_messages, _systemrole = buildInpurtMessagesForGemini(_messages)
+
+        # モデル名を有効なものにすること！ (例: "gemini-1.5-flash-latest")
+        model = genai.GenerativeModel(
+            model_name=_selected_model,  # ★★★ モデル名を有効なものに！ ★★★
+            system_instruction=_systemrole,
         )
-        print("^^^")
-        print(response.text,)
+        response = model.generate_content(_inpurt_messages)
+
         return response.text,
 
     else:
