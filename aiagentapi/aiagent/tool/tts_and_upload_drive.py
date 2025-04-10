@@ -1,4 +1,4 @@
-from aiagent.googleapis.drive import get_file_id_and_mime_type, resumable_upload, get_google_drive_file_links
+from aiagent.googleapis.drive import get_file_id_and_mime_type, resumable_upload, get_google_drive_file_links, get_or_create_folder
 from aiagent.tts.tts import tts
 from aiagent.utils.file_operation import delete_file
 import uuid
@@ -7,6 +7,15 @@ from pydantic import BaseModel, Field, ValidationError
 from typing import Type, Optional, Union, Dict, Any
 from pathlib import Path
 from aiagent.utils.generate_subject_from_text import generate_subject_from_text
+from aiagent.googleapis.drive import SpreadsheetDB
+import os
+import datetime
+import uuid
+from aiagent.utils.file_operation import delete_file
+from aiagent.googleapis.drive import get_or_create_folder, upload_file
+
+SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
+SHEET_NAME = 'podcast'
 
 
 class TTSUploadInput(BaseModel):
@@ -93,7 +102,9 @@ class TextToSpeechAndUploadTool(BaseTool):
         if file_name is None:
             file_name = "AIエージェントからの手紙"
         if target_folder_name is None:
-            target_folder_name = "MyAiAgent"
+            target_folder_name = "./MyAiAgent/podcast"
+
+        print(f"target_folder_name:{target_folder_name}")
 
         try:
             # 0. 一時ディレクトリの確認/作成
@@ -127,12 +138,13 @@ class TextToSpeechAndUploadTool(BaseTool):
                 # 注意: get_file_id_and_mime_typeは同名フォルダ/ファイルが複数ある場合、
                 # 意図しないものを返す可能性があります。より堅牢にするには、
                 # mimeType='application/vnd.google-apps.folder' を条件に加えるなどの改善を検討。
-                _name, folder_id, mimeType = get_file_id_and_mime_type(target_folder_name)
+                #_name, folder_id, mimeType = get_file_id_and_mime_type(target_folder_name)
+                folder_id = get_or_create_folder(target_folder_name)
 
-                if not folder_id:
-                    return f"エラー: Google Drive でフォルダ '{target_folder_name}' が見つかりません。"
-                if mimeType != 'application/vnd.google-apps.folder':
-                    return f"エラー: Google Drive で見つかった '{target_folder_name}' はフォルダではありません (Type: {mimeType})。"
+                # if not folder_id:
+                #     return f"エラー: Google Drive でフォルダ '{target_folder_name}' が見つかりません。"
+                # if mimeType != 'application/vnd.google-apps.folder':
+                #     return f"エラー: Google Drive で見つかった '{target_folder_name}' はフォルダではありません (Type: {mimeType})。"
             except Exception as e:
                 # フォルダ検索中のエラー
                 return f"エラー: Google Drive フォルダ '{target_folder_name}' の検索中にエラーが発生しました: {e}"
@@ -167,6 +179,37 @@ class TextToSpeechAndUploadTool(BaseTool):
 
                 web_view_link = link_info['webViewLink']
                 print(f"[{self.name}] INFO: Successfully retrieved webViewLink: {web_view_link}")
+
+                # ---------------
+                # ポッドキャスト生成情報を記録
+                # マークダウンファイル生成
+                temp_dir = Path("./temp")
+                try:
+                    temp_dir.mkdir(parents=True, exist_ok=True)
+                except OSError as e:
+                    return f"エラー: 一時ディレクトリ '{temp_dir}' の作成に失敗しました: {e}"
+                unique_filename = f"{uuid.uuid4()}.md"
+                md_file_path = temp_dir / unique_filename
+
+                try:
+                    with open(md_file_path, 'w', encoding='utf-8') as f:
+                        f.write(input_message)
+                except IOError as e:
+                    print(f"ファイルの書き込みエラー: {e}")
+
+                # googl drive にアップロード
+                folder_id = get_or_create_folder("./MyAiAgent/podcast_input")
+                print("@ ファイルをアップロードします @")
+                _id = upload_file(f"{self.name}.md", md_file_path, 'text/plain', folder_id)
+                delete_file(str(md_file_path))
+
+                db = SpreadsheetDB(SPREADSHEET_ID)
+                new_products = [
+                    [self.name, datetime.datetime.now(), web_view_link, get_google_drive_file_links(_id)]
+                ]
+                db.append_rows(SHEET_NAME, new_products)
+                # ---------------
+                
                 # 成功時の返り値 (AI に分かりやすいメッセージ形式)
                 return f"音声ファイル「{drive_filename}」を Google Drive のフォルダ「{target_folder_name}」にアップロードしました。表示用リンク: {web_view_link}"
 
@@ -197,7 +240,7 @@ def tts_and_upload_drive(file_name, input_message):
         file_name = "AIエージェントからの手紙"
 
     name = "tts_and_upload_to_google_drive"
-    target_folder_name = "MyAiAgent"
+    target_folder_name = "./MyAiAgent/podcast"
 
     try:
         # 0. 一時ディレクトリの確認/作成
@@ -231,12 +274,13 @@ def tts_and_upload_drive(file_name, input_message):
             # 注意: get_file_id_and_mime_typeは同名フォルダ/ファイルが複数ある場合、
             # 意図しないものを返す可能性があります。より堅牢にするには、
             # mimeType='application/vnd.google-apps.folder' を条件に加えるなどの改善を検討。
-            _name, folder_id, mimeType = get_file_id_and_mime_type(target_folder_name)
+            # _name, folder_id, mimeType = get_file_id_and_mime_type(target_folder_name)
+            folder_id = get_or_create_folder(target_folder_name)
 
-            if not folder_id:
-                return f"エラー: Google Drive でフォルダ '{target_folder_name}' が見つかりません。"
-            if mimeType != 'application/vnd.google-apps.folder':
-                return f"エラー: Google Drive で見つかった '{target_folder_name}' はフォルダではありません (Type: {mimeType})。"
+            # if not folder_id:
+            #     return f"エラー: Google Drive でフォルダ '{target_folder_name}' が見つかりません。"
+            # if mimeType != 'application/vnd.google-apps.folder':
+            #     return f"エラー: Google Drive で見つかった '{target_folder_name}' はフォルダではありません (Type: {mimeType})。"
         except Exception as e:
             # フォルダ検索中のエラー
             return f"エラー: Google Drive フォルダ '{target_folder_name}' の検索中にエラーが発生しました: {e}"
@@ -272,6 +316,37 @@ def tts_and_upload_drive(file_name, input_message):
             web_view_link = link_info['webViewLink']
             print(f"[{name}] INFO: Successfully retrieved webViewLink: {web_view_link}")
             # 成功時の返り値 (AI に分かりやすいメッセージ形式)
+
+            # ---------------
+            # ポッドキャスト生成情報を記録
+            # マークダウンファイル生成
+            temp_dir = Path("./temp")
+            try:
+                temp_dir.mkdir(parents=True, exist_ok=True)
+            except OSError as e:
+                return f"エラー: 一時ディレクトリ '{temp_dir}' の作成に失敗しました: {e}"
+            unique_filename = f"{uuid.uuid4()}.md"
+            md_file_path = temp_dir / unique_filename
+
+            try:
+                with open(md_file_path, 'w', encoding='utf-8') as f:
+                    f.write(input_message)
+            except IOError as e:
+                print(f"ファイルの書き込みエラー: {e}")
+
+            # googl drive にアップロード
+            folder_id = get_or_create_folder("./MyAiAgent/podcast_input")
+            print("@ ファイルをアップロードします @")
+            _id = upload_file(f"{drive_filename}.md", md_file_path, 'text/plain', folder_id)
+            delete_file(str(md_file_path))
+
+            db = SpreadsheetDB(SPREADSHEET_ID)
+            new_products = [
+                [uploaded_file_id, drive_filename, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), web_view_link, get_google_drive_file_links(_id)['webViewLink']]
+            ]
+            db.append_rows(SHEET_NAME, new_products)
+            # ---------------
+
             return f"音声ファイル「{drive_filename}」を Google Drive のフォルダ「{target_folder_name}」にアップロードしました。表示用リンク: {web_view_link}"
 
         except Exception as e:

@@ -144,8 +144,9 @@ def execLlmApi(_selected_model, _messages, encoded_file=""):
             system_instruction=_systemrole,
         )
         response = model.generate_content(_inpurt_messages)
-
-        return response.text,
+        print("@@@@@@@@@@@")
+        print(response.text)
+        return response.text
 
     else:
         return {}

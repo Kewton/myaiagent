@@ -13,7 +13,8 @@ load_dotenv()
 SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',
     'https://www.googleapis.com/auth/gmail.send',
-    'https://www.googleapis.com/auth/drive'
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/spreadsheets'
 ]
 
 # 環境変数からパスを取得（Noneの場合は空文字列などにしても良いが、ここではNoneのまま扱う）
@@ -111,6 +112,9 @@ def get_googleapis_service(_serviceName):
             service = build('gmail', 'v1', credentials=creds)
         elif _serviceName == "drive":
             service = build('drive', 'v3', credentials=creds)
+        elif _serviceName == "sheets":
+            # Sheets API v4 を使用
+            service = build('sheets', 'v4', credentials=creds)
         else:
             print(f"エラー: 不明なサービス名です: {_serviceName}")
             return None

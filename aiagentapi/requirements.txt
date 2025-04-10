@@ -17,3 +17,5 @@ pydantic-settings
 uvicorn
 openai
 requests
+pandas
+itsdangerous
