@@ -40,11 +40,9 @@ selected_template_name = st.selectbox("テンプレートを選択してくだ�
 
 # テキストエリアにテンプレート内容を初期表示（選択時のみ変更）
 if "last_template" not in st.session_state:
-    print(st.session_state)
     st.session_state.last_template = ""
 
 if selected_template_name != st.session_state.last_template:
-    print(st.session_state.last_template)
     st.session_state.user_input = PROMPT_TEMPLATES[selected_template_name]
     st.session_state.last_template = selected_template_name
 

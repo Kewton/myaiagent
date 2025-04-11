@@ -17,6 +17,7 @@ services:
       LOG_DIR: ${LOG_DIR}
       LOG_LEVEL: ${LOG_LEVEL}
       PODCAST_SCRIPT_DEFAULT_MODEL: ${PODCAST_SCRIPT_DEFAULT_MODEL}
+      SPREADSHEET_ID: ${SPREADSHEET_ID}
     # ポートをホストに公開する必要は必ずしもない (Gradioから直接アクセスするため)
     # デバッグ用に公開する場合はコメントアウトを外す
     # ports:
