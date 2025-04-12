@@ -11,7 +11,7 @@ from aiagent.aiagent.common import isChatGPTImageAPI, isGemini
 from aiagent.tool.url2markdown import getMarkdown_tool
 from aiagent.tool.generate_podcast_script import generate_podcast_mp3_and_upload_tool, generate_podcast_script_tool
 from aiagent.tool.generate_melmaga_script import generate_melmaga_script_tool
-
+from aiagent.specializedtool.generate_melmaga_script import generate_melmaga_and_send_email_from_urls_tool
 
 tts_upload_tool = TextToSpeechAndUploadTool()
 # send_email_tool = SendEmailTool()
@@ -30,14 +30,15 @@ class StandardAiAgent(AiAgentBase):
             getMarkdown_tool,
             generate_podcast_mp3_and_upload_tool,
             generate_podcast_script_tool,
-            generate_melmaga_script_tool
+            generate_melmaga_script_tool,
+            generate_melmaga_and_send_email_from_urls_tool
     ]
 
     def __init__(
         self,
         model_name: str = DEFAULT_MODEL,
         max_iterations: int = DEFAULT_MAX_ITERATIONS,
-        verbose: bool = True,
+        verbose: bool = False,
         tools: list = DEFAULT_MAX_TOOLS,
         return_intermediate_steps: bool = True
     ):

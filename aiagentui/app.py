@@ -19,7 +19,8 @@ if os.getenv('MODEL_LIST', "gemini-1.5-pro"):
 # テンプレートの定義（名前と本文）
 PROMPT_TEMPLATES = {
     "なし（手動入力）": "",
-    "メルマガ生成": "以下の記事とその他情報からメルマガを生成してメール送信してください。：\n\n# 記事\n\n\n\n# その他情報",
+    "メルマガ生成（URL指定）": "以下の記事からメルマガを生成してメール送信してください。：\n\n# 記事",
+    "メルマガ生成（キーワード指定）": "以下のキーワード毎に関係する記事を検索し、取得したURIをもとにURLの一覧を作成し、このURLの記事をもとにメルマガを生成してメール送信してください。：\n\n# キーワード",
     "ポッドキャスト生成": "以下の記事とその他情報からポッドキャストを生成してGoogleDriveにアップし、ポッドキャストの台本とリンクをメール送信してください：\n\n# 記事\n\n\n\n# その他情報",
     "コードレビュー依頼": "以下のコードの改善点をレビューしてください：\n\n```python\n# ここにコードを貼ってください\n```",
 }
@@ -36,14 +37,14 @@ max_iterations = st.selectbox("最大イテレーション数を選択してく�
 thought_process_Flg = st.selectbox("思考プロセスを出力しますか？", [False, True])
 
 # プロンプトテンプレート選択
-selected_template_name = st.selectbox("テンプレートを選択してください", list(PROMPT_TEMPLATES.keys()))
+selected_template_name = st.selectbox("処理モードを選択してください", list(PROMPT_TEMPLATES.keys()))
 
 # テキストエリアにテンプレート内容を初期表示（選択時のみ変更）
 if "last_template" not in st.session_state:
     st.session_state.last_template = ""
 
 if selected_template_name != st.session_state.last_template:
-    st.session_state.user_input = PROMPT_TEMPLATES[selected_template_name]
+    # st.session_state.user_input = PROMPT_TEMPLATES[selected_template_name]
     st.session_state.last_template = selected_template_name
 
 # 入力フィールド
@@ -61,8 +62,10 @@ if st.button("送信"):
         try:
             # APIにリクエストを送信
             api_url = f"http://{AIAGENT_API_URI}:{AIAGENT_PORT}{AIAGENT_API_PATH}"
+
+            _user_input = PROMPT_TEMPLATES[selected_template_name] + user_input
             parameters = {
-                "user_input": user_input,
+                "user_input": _user_input,
                 "model_name": modelname,
                 "max_iterations": max_iterations,
                 "thought_process_Flg": thought_process_Flg
