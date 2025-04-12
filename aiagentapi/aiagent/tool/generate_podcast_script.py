@@ -1,5 +1,4 @@
-from openai import OpenAI
-from pydantic import BaseModel, Field # Pydanticをインポート
+from pydantic import BaseModel, Field
 from aiagent.tool.tts_and_upload_drive import tts_and_upload_drive
 from aiagent.utils.generate_subject_from_text import generate_subject_from_text
 from langchain.tools import tool
@@ -8,6 +7,7 @@ from aiagent.utils.execllm import execLlmApi
 
 
 PODCAST_SCRIPT_DEFAULT_MODEL = os.getenv('PODCAST_SCRIPT_DEFAULT_MODEL', "gpt-4o-mini")
+
 
 class PodcastScriptInput(BaseModel):
     """ポッドキャスト台本生成ツールの入力"""
@@ -21,8 +21,6 @@ class PodcastMp3Input(BaseModel):
     model_name: str = Field(default=PODCAST_SCRIPT_DEFAULT_MODEL, description="台本生成に使用するOpenAIモデル名。") # ★ 要確認: デフォルトモデル名
     subject_max_length: int = Field(default=25, description="生成する件名の最大文字数。")
 
-
-# --- 改良されたLangChainツール ---
 
 @tool(args_schema=PodcastScriptInput) # Pydanticモデルを入力スキーマとして指定
 def generate_podcast_script_tool(topic_details: str, model_name: str = PODCAST_SCRIPT_DEFAULT_MODEL) -> str:
@@ -43,7 +41,8 @@ def generate_podcast_script_tool(topic_details: str, model_name: str = PODCAST_S
     script = generate_podcast_script(model_name=model_name, input_info=topic_details)
     return script
 
-@tool(args_schema=PodcastMp3Input) # Pydanticモデルを入力スキーマとして指定
+
+@tool(args_schema=PodcastMp3Input)  # Pydanticモデルを入力スキーマとして指定
 def generate_podcast_mp3_and_upload_tool(topic_details: str, model_name: str = PODCAST_SCRIPT_DEFAULT_MODEL, subject_max_length: int = 25) -> str:
     """
     与えられたトピック詳細情報からポッドキャスト台本を生成し、
@@ -82,8 +81,6 @@ def generate_podcast_mp3_and_upload_tool(topic_details: str, model_name: str = P
 
 def generate_podcast_script(input_info: str, model_name: str = "gpt-4o-mini"): # model_name を引数に追加
     """指定された情報とモデル名からポッドキャスト台本を生成する"""
-    client = OpenAI()
-
     _input = f"""
     あなたは、複数の情報源からのデータを統合してポッドキャスト台本を作成するツールです。
     以下の入力情報と指示に基づいて、指定されたトピックに関する一貫性のある台本テキストのみを出力してください。
@@ -107,9 +104,3 @@ def generate_podcast_script(input_info: str, model_name: str = "gpt-4o-mini"): #
     ]
 
     return execLlmApi(model_name, _messages)
-
-    #response = client.chat.completions.create(
-    #    model=model_name,
-    #    messages=_messages
-    #)
-    #return response.choices[0].message.content

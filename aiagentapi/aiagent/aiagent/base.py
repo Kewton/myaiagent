@@ -27,6 +27,19 @@ class AiAgentBase(ABC):
             final_answer = result.get("output", str(result) if isinstance(result, dict) else result)
             intermediate_steps = result.get("intermediate_steps", [])
             
+            print("--------------------------")
+            print("--- Intermediate Steps ---")
+            print("--------------------------")
+            for action, observation in intermediate_steps:
+                # action は AgentAction オブジェクト
+                print(f"Action Tool: {action.tool}")
+                print(f"Action Input: {action.tool_input}")
+                # action.log には Action に至る思考プロセスが含まれることが多い
+                #print(f"Action Log: \n{action.log}")
+                #print(f"Observation: {observation}\n") # ツールの実行結果
+            print("--------------------------") 
+            print("--------------------------")
+
             # 中間ステップを整形
             formatted_steps = self.format_intermediate_steps(intermediate_steps)
             

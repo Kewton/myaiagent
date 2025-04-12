@@ -4,7 +4,7 @@ from langchain_openai import ChatOpenAI
 from langchain.agents import AgentExecutor, create_react_agent
 from aiagent.tool.google_search_by_gemini import google_search_tool
 from aiagent.tool.tts_and_upload_drive import TextToSpeechAndUploadTool
-from aiagent.googleapis import gmail_search_search_tool, SendEmailTool
+from aiagent.googleapis import gmail_search_search_tool, SendEmailTool, send_email_tool
 import os
 from aiagent.aiagent.base import AiAgentBase
 from aiagent.aiagent.common import isChatGPTImageAPI, isGemini
@@ -14,7 +14,7 @@ from aiagent.tool.generate_melmaga_script import generate_melmaga_script_tool
 
 
 tts_upload_tool = TextToSpeechAndUploadTool()
-send_email_tool = SendEmailTool()
+# send_email_tool = SendEmailTool()
 
 
 class StandardAiAgent(AiAgentBase):
@@ -23,6 +23,7 @@ class StandardAiAgent(AiAgentBase):
     DEFAULT_MAX_ITERATIONS = 5
     DEFAULT_MAX_TOOLS = [
             google_search_tool,
+            #send_email_tool,
             send_email_tool,
             gmail_search_search_tool,
             tts_upload_tool,
@@ -84,7 +85,6 @@ class StandardAiAgent(AiAgentBase):
             except Exception as e:
                 raise RuntimeError(f"Failed to initialize ChatGoogleGenerativeAI with model '{self.model_name}': {e}")
 
-    # 2. createAgentExecutor でインスタンス変数を使用
     def createAgentExecutor(self) -> AgentExecutor:
         """AgentExecutor を生成して返します。"""
         # print(f"Creating AgentExecutor with model={self.model_name}, max_iter={self.max_iterations}") # デバッグ用

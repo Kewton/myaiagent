@@ -16,10 +16,19 @@ def gmail_search_search_tool(keywrod: str, top: int = 5) -> Dict:
 
 
 @tool
-def send_email_tool(body: str, subject: str = "AIエージェントからの手紙") -> str:
+def send_email_tool(body: str) -> str:
+    """gmailサービスを利用してメール送信する
+
+    入力したメールの本文から件名を自動生成し事前に設定した宛先にメールを送信し、
+    結果を示すメッセージを返します。
+
+    Args:
+        body: メールの本文。
+
+    Returns:
+        str: 成功時は成功メッセージ、失敗時はエラーメッセージ。
     """
-    メール送信します。subjectには件名を、bodyには本文を指定します。
-    """
+    subject = generate_subject_from_text(body)
     return send_email(os.getenv("MAIL_TO"), subject, body)
 
 
@@ -32,13 +41,10 @@ class SendEmailTool(BaseTool):
     """固定アドレスへのメール送信ツール"""
     name: str = "send_email_to_fixed_address" # 名前をより具体的に変更
     description: str = (
-        "指定された件名と本文で、事前に設定された特定のメールアドレスにメールを送信します。"
-        f"【重要】送信先は環境変数 'MAIL_TO' で指定されたアドレス ({os.getenv('MAIL_TO', '未設定')}) に固定されており、変更できません。" # 送信先固定を明記
-        "ユーザーがメールを送りたい、または情報をメールで通知する必要がある場合に使用します。"
+        "入力内容を本文として設定し事前に設定された特定のメールアドレスにメールを送信します。"
+        "なお、入力内容をもとに件名を自動で設定するので、件名の指定は不要です。"
         "このフォーマットに従うオブジェクトの形で入力してください。"
         f"{SendEmailInput.model_json_schema()}"
-        "入力としてメール本文（body）は必須入力です。"
-        "Gmail API へのアクセス権限が事前に設定されている必要があります。"
         "処理の成功または失敗を示すメッセージを返します。"
     )
     args_schema: Type[BaseModel] = SendEmailInput
