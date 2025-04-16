@@ -11,17 +11,15 @@ from app.tool.google_search_by_gemini import googleSearchAgent
 from app.tool.tts_and_upload_drive import tts_and_upload_drive
 from app.utils.html2markdown import getMarkdown
 from mcp.server.fastmcp import FastMCP
-from dotenv import load_dotenv
 import os
-
-load_dotenv()
 
 
 PODCAST_SCRIPT_DEFAULT_MODEL = os.getenv('PODCAST_SCRIPT_DEFAULT_MODEL', "gpt-4o-mini")
-
+HOST = os.getenv('HOST', "127.0.0.1")
+PORT = os.getenv('PORT', 8001)
 
 # Initialize FastMCP server
-mcp = FastMCP("weather", host="127.0.0.1", port=8002)
+mcp = FastMCP("weather", host=HOST, port=PORT)
 
 
 @mcp.tool()

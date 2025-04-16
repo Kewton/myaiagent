@@ -88,6 +88,6 @@ def googleSearchAgent(_input: str) -> str:
         uris=uris
     )
 
-    print(result_model.json(indent=2, ensure_ascii=False))
+    # print(result_model.model_dump_json())
 
     return result_model.model_dump_json()
