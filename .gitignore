@@ -1,11 +1,8 @@
 __pycache__/
 .pytest_cache/
 venv/
-*.log
-*.db
 .env
-ui/
-aiagentapi/token/token.json
-aiagentapi/token/credentials.json
+token.json
+credentials.json
 .DS_Store
-k3s
+myworks/
