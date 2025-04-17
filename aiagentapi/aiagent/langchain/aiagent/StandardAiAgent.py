@@ -2,16 +2,16 @@ from langchain import hub
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from langchain.agents import AgentExecutor, create_react_agent
-from aiagent.tool.google_search_by_gemini import google_search_tool
-from aiagent.tool.tts_and_upload_drive import TextToSpeechAndUploadTool
-from aiagent.googleapis import gmail_search_search_tool, SendEmailTool, send_email_tool
+from aiagent.langchain.tool.google_search_by_gemini import google_search_tool
+from aiagent.langchain.tool.tts_and_upload_drive import TextToSpeechAndUploadTool
+from aiagent.langchain.googleapis import gmail_search_search_tool, SendEmailTool, send_email_tool
 import os
-from aiagent.aiagent.base import AiAgentBase
-from aiagent.aiagent.common import isChatGPTImageAPI, isGemini
-from aiagent.tool.url2markdown import getMarkdown_tool
-from aiagent.tool.generate_podcast_script import generate_podcast_mp3_and_upload_tool, generate_podcast_script_tool
-from aiagent.tool.generate_melmaga_script import generate_melmaga_script_tool
-from aiagent.specializedtool.generate_melmaga_script import generate_melmaga_and_send_email_from_urls_tool
+from aiagent.langchain.aiagent.base import AiAgentBase
+from aiagent.langchain.aiagent.common import isChatGPTImageAPI, isGemini
+from aiagent.langchain.tool.url2markdown import getMarkdown_tool
+from aiagent.langchain.tool.generate_podcast_script import generate_podcast_mp3_and_upload_tool, generate_podcast_script_tool
+from aiagent.langchain.tool.generate_melmaga_script import generate_melmaga_script_tool
+from aiagent.langchain.specializedtool.generate_melmaga_script import generate_melmaga_and_send_email_from_urls_tool
 
 tts_upload_tool = TextToSpeechAndUploadTool()
 # send_email_tool = SendEmailTool()

@@ -4,7 +4,7 @@ import google.generativeai as genai
 from bs4 import BeautifulSoup
 from langchain.tools import tool
 from pydantic import BaseModel, Field
-from aiagent.utils.html2markdown import getMarkdown
+from aiagent.langchain.utils.html2markdown import getMarkdown
 
 
 class GoogleSearchResult(BaseModel):

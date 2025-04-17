@@ -1,12 +1,12 @@
 from langchain.tools import tool
 from typing import Dict
-from aiagent.googleapis.gmail.readonly import get_emails_by_keyword
-from aiagent.googleapis.gmail.send import send_email
+from aiagent.langchain.googleapis.gmail.readonly import get_emails_by_keyword
+from aiagent.langchain.googleapis.gmail.send import send_email
 import os
 from typing import Type, Optional, Union, Dict, Any
 from langchain.tools import BaseTool
 from pydantic import BaseModel, Field, ValidationError
-from aiagent.utils.generate_subject_from_text import generate_subject_from_text
+from aiagent.langchain.utils.generate_subject_from_text import generate_subject_from_text
 
 
 @tool

@@ -1,6 +1,6 @@
 from langchain.tools import tool
 import os
-from aiagent.utils.execllm import execLlmApi
+from aiagent.langchain.utils.execllm import execLlmApi
 
 
 PODCAST_SCRIPT_DEFAULT_MODEL = os.getenv('PODCAST_SCRIPT_DEFAULT_MODEL', "gpt-4o-mini")

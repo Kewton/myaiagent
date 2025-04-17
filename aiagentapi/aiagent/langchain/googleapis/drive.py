@@ -1,5 +1,5 @@
 import time
-from aiagent.googleapis.googleapi_services import get_googleapis_service
+from aiagent.langchain.googleapis.googleapi_services import get_googleapis_service
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 import os
 import io

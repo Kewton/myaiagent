@@ -1,4 +1,4 @@
-from aiagent.aiagent.StandardAiAgent import StandardAiAgent
+from aiagent.langchain.aiagent.StandardAiAgent import StandardAiAgent
 
 user_input = """
 2025/4/7の葛飾区の天気予報を調べて、音声（MP3）に変換したものをgoogle drive にアップし、リンクをメール送信してください。

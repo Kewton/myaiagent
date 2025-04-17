@@ -1,7 +1,7 @@
 import html2text
-from aiagent.googleapis.drive import get_or_create_folder, upload_file
+from aiagent.langchain.googleapis.drive import get_or_create_folder, upload_file
 from bs4 import BeautifulSoup, NavigableString
-from aiagent.utils.file_operation import delete_file
+from aiagent.langchain.utils.file_operation import delete_file
 import re
 import requests
 import uuid

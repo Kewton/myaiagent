@@ -5,7 +5,7 @@ import logging
 import logging.config
 import time
 import inspect
-from app.core.config import settings
+from core.config import settings
 
 
 # ログセットアップが実行されたかを保持するフラグ

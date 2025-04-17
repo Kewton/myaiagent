@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 from app.api.v1 import common_endpoints
-from app.core.logger import setup_logging
 
-setup_logging()
 
 app = FastAPI(
     title="My API",

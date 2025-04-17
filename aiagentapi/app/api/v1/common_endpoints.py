@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from aiagent.aiagent.StandardAiAgent import StandardAiAgent
+from aiagent.langchain.aiagent.StandardAiAgent import StandardAiAgent
 from app.schemas.standardAiAgent import AtandardAiAgentRequest, AtandardAiAgentResponse
 from datetime import datetime
 

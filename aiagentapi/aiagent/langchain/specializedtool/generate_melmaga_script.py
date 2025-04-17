@@ -1,9 +1,9 @@
 from langchain.tools import tool
-from aiagent.utils.html2markdown import getMarkdown
-from aiagent.tool.generate_melmaga_script import generate_melmaga_script
-from aiagent.googleapis.gmail.send import send_email
+from aiagent.langchain.utils.html2markdown import getMarkdown
+from aiagent.langchain.tool.generate_melmaga_script import generate_melmaga_script
+from aiagent.langchain.googleapis.gmail.send import send_email
 import ast
-from aiagent.utils.generate_subject_from_text import generate_subject_from_text
+from aiagent.langchain.utils.generate_subject_from_text import generate_subject_from_text
 import os
 
 

@@ -162,6 +162,6 @@ async def getMarkdown_tool(input_url: str) -> str:
     """
     return getMarkdown(input_url)
 
-if __name__ == "__main__":
-    print("Starting weather MCP server...")
-    mcp.run(transport='sse')
+# if __name__ == "__main__":
+#     print("Starting weather MCP server...")
+#     mcp.run(transport='sse')

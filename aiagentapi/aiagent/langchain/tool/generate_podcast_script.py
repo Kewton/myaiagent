@@ -1,9 +1,9 @@
 from pydantic import BaseModel, Field
-from aiagent.tool.tts_and_upload_drive import tts_and_upload_drive
-from aiagent.utils.generate_subject_from_text import generate_subject_from_text
+from aiagent.langchain.tool.tts_and_upload_drive import tts_and_upload_drive
+from aiagent.langchain.utils.generate_subject_from_text import generate_subject_from_text
 from langchain.tools import tool
 import os
-from aiagent.utils.execllm import execLlmApi
+from aiagent.langchain.utils.execllm import execLlmApi
 
 
 PODCAST_SCRIPT_DEFAULT_MODEL = os.getenv('PODCAST_SCRIPT_DEFAULT_MODEL', "gpt-4o-mini")
