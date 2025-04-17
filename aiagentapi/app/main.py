@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.api.v1 import common_endpoints
+from app.api.v1_1 import agent_endpoints
 
 
 app = FastAPI(
@@ -14,3 +15,4 @@ app = FastAPI(
 )
 
 app.include_router(common_endpoints.router, prefix="/v1")
+app.include_router(agent_endpoints.router, prefix="/v1_1")

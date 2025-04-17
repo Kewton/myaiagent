@@ -8,6 +8,7 @@ load_dotenv()
 AIAGENT_API_URI = os.getenv('AIAGENT_API_URI', "192.168.11.8")
 AIAGENT_PORT = os.getenv('AIAGENT_PORT', "31953")
 AIAGENT_API_PATH = os.getenv('AIAGENT_API_PATH', "/aiagent-api/v1/aiagent")
+AIAGENT_API_PATH_1_1 = os.getenv('AIAGENT_API_PATH_1_1', "/aiagent-api/v1_1/aiagent")
 
 MODEL_LIST = []
 if os.getenv('MODEL_LIST', "gemini-1.5-pro"):
@@ -22,7 +23,8 @@ PROMPT_TEMPLATES = {
     "メルマガ生成（URL指定）": "以下の記事からメルマガを生成してメール送信してください。：\n\n# 記事",
     "メルマガ生成（キーワード指定）": "以下のキーワード毎に関係する記事を検索し、取得したURIをもとにURLの一覧を作成し、このURLの記事をもとにメルマガを生成してメール送信してください。：\n\n# キーワード",
     "ポッドキャスト生成": "以下の記事とその他情報からポッドキャストを生成してGoogleDriveにアップし、ポッドキャストの台本とリンクをメール送信してください：\n\n# 記事\n\n\n\n# その他情報",
-    "コードレビュー依頼": "以下のコードの改善点をレビューしてください：\n\n```python\n# ここにコードを貼ってください\n```",
+    "ADK": "",
+    "graph": "",
 }
 
 # レイアウトの調整（スマホ対応）
@@ -61,7 +63,12 @@ if st.button("送信"):
     if user_input.strip():
         try:
             # APIにリクエストを送信
-            api_url = f"http://{AIAGENT_API_URI}:{AIAGENT_PORT}{AIAGENT_API_PATH}"
+            if selected_template_name == "ADK":
+                api_url = f"http://{AIAGENT_API_URI}:{AIAGENT_PORT}{AIAGENT_API_PATH_1_1}/adk"
+            elif selected_template_name == "graph":
+                api_url = f"http://{AIAGENT_API_URI}:{AIAGENT_PORT}{AIAGENT_API_PATH_1_1}/graph"
+            else:
+                api_url = f"http://{AIAGENT_API_URI}:{AIAGENT_PORT}{AIAGENT_API_PATH}"
 
             _user_input = PROMPT_TEMPLATES[selected_template_name] + user_input
             parameters = {

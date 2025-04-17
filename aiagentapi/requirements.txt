@@ -1,4 +1,10 @@
+# 共通
 python-dotenv
+requests
+# FastAPI
+fastapi
+uvicorn
+# langchain & tool
 langchain
 langchain-openai
 google-genai
@@ -6,16 +12,21 @@ google-generativeai
 beautifulsoup4
 langgraph
 langchainhub
-gradio
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
 html2text
 langchain-google-genai
-fastapi
 pydantic-settings
-uvicorn
 openai
-requests
 pandas
-itsdangerous
+# itsdangerous
+# adk
+google-adk
+google-genai
+httpx
+# LangGraph
+langchain-mcp-adapters
+langgraph
+langgraph-sdk
+langchain-openai

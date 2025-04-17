@@ -1,3 +1,3 @@
-from dotenv import load_dotenv
+from core.logger import setup_logging
 
-load_dotenv()
+setup_logging()

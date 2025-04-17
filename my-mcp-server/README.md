@@ -9,5 +9,5 @@ pip install -r requirements.txt
 
 # 実行
 ```
-python -m app.main
+python -m app.sse
 ```
