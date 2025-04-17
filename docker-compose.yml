@@ -11,6 +11,7 @@ services:
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
       GOOGLE_APIS_TOKEN_PATH: ${GOOGLE_APIS_TOKEN_PATH}
       GOOGLE_APIS_CREDENTIALS_PATH: ${GOOGLE_APIS_CREDENTIALS_PATH}
       MAIL_TO: ${MAIL_TO}
@@ -18,7 +19,10 @@ services:
       LOG_LEVEL: ${LOG_LEVEL}
       PODCAST_SCRIPT_DEFAULT_MODEL: ${PODCAST_SCRIPT_DEFAULT_MODEL}
       SPREADSHEET_ID: ${SPREADSHEET_ID}
-    # ポートをホストに公開する必要は必ずしもない (Gradioから直接アクセスするため)
+      SSE_SERVER_PARAMS_URL: ${SSE_SERVER_PARAMS_URL}
+      ADK_AGENT_MODEL: ${ADK_AGENT_MODEL}
+      GRAPH_AGENT_MODEL: ${GRAPH_AGENT_MODEL}
+    # ポートをホストに公開する必要は必ずしもない (UIから直接アクセスするため)
     # デバッグ用に公開する場合はコメントアウトを外す
     # ports:
     #   - "8000:8000"
@@ -29,18 +33,42 @@ services:
   frontend:
     build: ./aiagentui         # frontend ディレクトリの Dockerfile を使ってビルド
     container_name: aiagentui_v0_1_1 # コンテナ名を指定 (オプション)
+
     ports:
-      - "8502:8502"         # ホストのポート 7860 をコンテナのポート 7860 にマッピング
+      - "8502:8502"         # ホストのポート 8502 をコンテナのポート 8502 にマッピング
     environment:
-      # Gradio アプリ (app.py) に FastAPI の URL を環境変数として渡す
       # 'backend' は上の services で定義した FastAPI サービスのキー (サービス名)
       # Docker の内部ネットワーク経由でアクセスするため、サービス名で名前解決できる
       - AIAGENT_API_URI=backend
       - AIAGENT_PORT=8000
       - AIAGENT_API_PATH=/aiagent-api/v1/aiagent
+      - AIAGENT_API_PATH_1_1=/aiagent-api/v1_1/aiagent
       - MODEL_LIST=gemini-2.0-flash,chatgpt-4o-latest,gpt-4o-mini,gpt-4.5-preview,o1-mini,o3-mini,gemini-1.5-pro,gemini-2.0-flash-lite,gemini-2.5-pro-preview-03-25
     depends_on:
       - backend             # backend サービスが起動してから frontend を起動する
+      - mcpserver
+    networks:
+      - app-network           # このサービスが接続するネットワーク
+
+  mcpserver:
+    build: ./my-mcp-server         # frontend ディレクトリの Dockerfile を使ってビルド
+    container_name: mcpserver_v0_1_1 # コンテナ名を指定 (オプション)
+    volumes:
+      - ./my-mcp-server/token:/app/token
+    #ports:
+    #  - "8001:8001"         # ホストのポート 7860 をコンテナのポート 7860 にマッピング
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GOOGLE_APIS_TOKEN_PATH: ${GOOGLE_APIS_TOKEN_PATH}
+      GOOGLE_APIS_CREDENTIALS_PATH: ${GOOGLE_APIS_CREDENTIALS_PATH}
+      MAIL_TO: ${MAIL_TO}
+      LOG_DIR: ${LOG_DIR}
+      LOG_LEVEL: ${LOG_LEVEL}
+      PODCAST_SCRIPT_DEFAULT_MODEL: ${PODCAST_SCRIPT_DEFAULT_MODEL}
+      SPREADSHEET_ID: ${SPREADSHEET_ID}
+      HOST: ${HOST}
+      PORT: ${PORT}
     networks:
       - app-network           # このサービスが接続するネットワーク
 
