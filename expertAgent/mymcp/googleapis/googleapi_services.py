@@ -15,9 +15,7 @@ SCOPES = [
 
 # 環境変数からパスを取得（Noneの場合は空文字列などにしても良いが、ここではNoneのまま扱う）
 # 環境変数が設定されていない場合はエラーになるようにする
-# TOKEN_PATH = os.getenv("GOOGLE_APIS_TOKEN_PATH")
 TOKEN_PATH = settings.GOOGLE_APIS_TOKEN_PATH
-# CREDENTIALS_PATH = os.getenv("GOOGLE_APIS_CREDENTIALS_PATH")
 CREDENTIALS_PATH = settings.GOOGLE_APIS_CREDENTIALS_PATH
 
 
@@ -63,10 +61,10 @@ def get_googleapis_service(_serviceName):
                     print(f"古いトークンファイルを削除しました: {TOKEN_PATH}")
                 except OSError as rm_e:
                     print(f"古いトークンファイルの削除に失敗しました: {rm_e}")
-                creds =  None # credsをNoneにして再認証フローへ
+                creds = None # credsをNoneにして再認証フローへ
             except Exception as e:
                 print(f"トークンのリフレッシュ中に予期せぬエラーが発生しました: {e}")
-                creds =  None # credsをNoneにして再認証フローへ
+                creds = None # credsをNoneにして再認証フローへ
 
         # creds が None (最初から存在しない、読み込み失敗、リフレッシュ失敗) の場合 -> 新規認証フロー
         if not creds:  # この条件チェックを追加
@@ -81,7 +79,7 @@ def get_googleapis_service(_serviceName):
                     port=0, # 利用可能なポートを自動選択
                     authorization_prompt_message="ブラウザを開いて認証してください: {url}",
                     success_message="認証が完了しました。このウィンドウは閉じて構いません。",
-                    open_browser=True, # 自動でブラウザを開く
+                    open_browser=True,  # 自動でブラウザを開く
                     # access_type='offline' と prompt='consent' は run_local_server 内で適切に処理されるはずですが、
                     # 明示的に authorization_url_params で指定することも可能です。
                     # authorization_url_params={

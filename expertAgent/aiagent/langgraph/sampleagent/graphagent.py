@@ -18,7 +18,7 @@ async def make_graph():
         {
             "my-mcp-tool": {
                 "command": "python",
-                "args": ["-m", "mymcp.main"],
+                "args": ["-m", "mymcp.stdioall"],
                 "transport": "stdio",
             }
         }

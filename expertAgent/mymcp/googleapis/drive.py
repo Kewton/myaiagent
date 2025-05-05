@@ -29,7 +29,7 @@ class SpreadsheetDB:
         try:
             self.service = get_googleapis_service(SHEETS_SERVICE_NAME) # 引数1つに修正済みと仮定
             if not self.service:
-                 raise ConnectionError("Failed to get Google Sheets service object via get_googleapis_service.")
+                raise ConnectionError("Failed to get Google Sheets service object via get_googleapis_service.")
             self.sheet_api = self.service.spreadsheets()
             print(f"Google Sheets API (Spreadsheet ID: {self.spreadsheet_id}) への接続準備完了。")
         except Exception as e:
@@ -79,30 +79,30 @@ class SpreadsheetDB:
             ).execute()
             created_sheet_id = response.get('replies', [{}])[0].get('addSheet', {}).get('properties', {}).get('sheetId')
             if created_sheet_id is not None:
-                 print(f"シート '{sheet_name}' (ID: {created_sheet_id}) を作成しました。")
-                 # ヘッダーが指定されていれば、作成したシートの最初の行に書き込む
-                 if headers and isinstance(headers, list) and len(headers) > 0:
-                     print(f"ヘッダー行 {headers} を '{sheet_name}' に追加します...")
-                     # ヘッダーを書き込む範囲 (A1から始まる)
-                     # 列数を計算 (A, B, ..., Z, AA, AB, ...)
-                     num_cols = len(headers)
-                     end_column_letter = ''
-                     temp_num = num_cols
-                     while temp_num > 0:
-                         temp_num, remainder = divmod(temp_num - 1, 26)
-                         end_column_letter = chr(65 + remainder) + end_column_letter # 65は'A'のASCIIコード
+                print(f"シート '{sheet_name}' (ID: {created_sheet_id}) を作成しました。")
+                # ヘッダーが指定されていれば、作成したシートの最初の行に書き込む
+                if headers and isinstance(headers, list) and len(headers) > 0:
+                    print(f"ヘッダー行 {headers} を '{sheet_name}' に追加します...")
+                    # ヘッダーを書き込む範囲 (A1から始まる)
+                    # 列数を計算 (A, B, ..., Z, AA, AB, ...)
+                    num_cols = len(headers)
+                    end_column_letter = ''
+                    temp_num = num_cols
+                    while temp_num > 0:
+                        temp_num, remainder = divmod(temp_num - 1, 26)
+                        end_column_letter = chr(65 + remainder) + end_column_letter # 65は'A'のASCIIコード
 
-                     header_range = f"A1:{end_column_letter}1"
-                     # update_range を呼び出してヘッダーを書き込む
-                     update_result = self.update_range(sheet_name, header_range, [headers])
-                     if update_result:
-                         print("ヘッダー行の追加に成功しました。")
-                         return True
-                     else:
-                         print("警告: シートは作成されましたが、ヘッダー行の追加に失敗しました。")
-                         return True # シート作成自体は成功
-                 else:
-                    return True # ヘッダーなしで作成成功
+                    header_range = f"A1:{end_column_letter}1"
+                    # update_range を呼び出してヘッダーを書き込む
+                    update_result = self.update_range(sheet_name, header_range, [headers])
+                    if update_result:
+                        print("ヘッダー行の追加に成功しました。")
+                        return True
+                    else:
+                        print("警告: シートは作成されましたが、ヘッダー行の追加に失敗しました。")
+                        return True  # シート作成自体は成功
+                else:
+                    return True  # ヘッダーなしで作成成功
             else:
                 print(f"エラー: シート '{sheet_name}' の作成応答からシートIDを取得できませんでした。")
                 return False
@@ -117,23 +117,23 @@ class SpreadsheetDB:
             return False
 
     def ensure_sheet_exists(self, sheet_name, headers=None):
-         """
-         シートが存在するか確認し、なければ作成するヘルパーメソッド。
-         シート作成に失敗した場合は RuntimeError を発生させる。
+        """
+        シートが存在するか確認し、なければ作成するヘルパーメソッド。
+        シート作成に失敗した場合は RuntimeError を発生させる。
 
-         Args:
-             sheet_name (str): 確認/作成するシート名。
-             headers (list, optional): 新規作成する場合のヘッダー行。
-         """
-         if not self._sheet_exists(sheet_name):
-             if not self._create_sheet(sheet_name, headers):
-                 # シート作成に失敗したら例外を発生
-                 raise RuntimeError(f"シート '{sheet_name}' の作成に失敗しました。APIログを確認してください。")
-             else:
-                 # シート作成後、APIへの反映を待つために少し待機
-                 print("シート作成/ヘッダー追加の反映待ち...")
-                 time.sleep(3) # 3秒待機 (必要に応じて調整)
-         return True # シートが存在する、または作成に成功した場合
+        Args:
+            sheet_name (str): 確認/作成するシート名。
+            headers (list, optional): 新規作成する場合のヘッダー行。
+        """
+        if not self._sheet_exists(sheet_name):
+            if not self._create_sheet(sheet_name, headers):
+                # シート作成に失敗したら例外を発生
+                raise RuntimeError(f"シート '{sheet_name}' の作成に失敗しました。APIログを確認してください。")
+            else:
+                # シート作成後、APIへの反映を待つために少し待機
+                print("シート作成/ヘッダー追加の反映待ち...")
+                time.sleep(3)  # 3秒待機 (必要に応じて調整)
+        return True  # シートが存在する、または作成に成功した場合
 
     # --- 各操作メソッドを修正 ---
     # (get_data, append_rows, update_range, find_rows, clear_range)
@@ -146,8 +146,8 @@ class SpreadsheetDB:
         try:
             self.ensure_sheet_exists(sheet_name, headers=headers_if_create)
         except RuntimeError as e:
-             print(f"エラー: {e}")
-             return pd.DataFrame() if return_dataframe else [] # エラー時は空を返す
+            print(f"エラー: {e}")
+            return pd.DataFrame() if return_dataframe else [] # エラー時は空を返す
 
         # --- 以降は元の get_data の処理をベースにする ---
         target_range = f"'{sheet_name}'"
@@ -166,15 +166,15 @@ class SpreadsheetDB:
                 print(f"範囲 '{target_range}' にデータがありません。")
                 # ヘッダー行のみが存在する場合も考慮
                 if return_dataframe:
-                     # ヘッダー情報を使って空のDataFrameを返す
-                     if headers_if_create and len(values) == 0: # 新規作成直後
-                          return pd.DataFrame(columns=headers_if_create)
-                     elif len(values) == 1: # ヘッダー行だけある場合
-                           return pd.DataFrame(columns=values[0])
-                     else: # ヘッダー情報も取得できなかった場合
-                           return pd.DataFrame()
+                    # ヘッダー情報を使って空のDataFrameを返す
+                    if headers_if_create and len(values) == 0:  # 新規作成直後
+                        return pd.DataFrame(columns=headers_if_create)
+                    elif len(values) == 1:  # ヘッダー行だけある場合
+                        return pd.DataFrame(columns=values[0])
+                    else:  # ヘッダー情報も取得できなかった場合
+                        return pd.DataFrame()
                 else:
-                     return [] # ヘッダーのみでもリストで返すか、空を返すか（ここでは空）
+                    return []  # ヘッダーのみでもリストで返すか、空を返すか（ここでは空）
 
             # --- DataFrame または List への変換処理 (前回と同様) ---
             if return_dataframe:
@@ -185,7 +185,7 @@ class SpreadsheetDB:
                 data_fixed += [row[:num_columns] for row in data if len(row) > num_columns]
                 return pd.DataFrame(data_fixed, columns=header)
             else:
-                return values # ヘッダー行も含んだリストを返す
+                return values  # ヘッダー行も含んだリストを返す
 
         except HttpError as error:
             print(f"データの取得中にAPIエラーが発生しました ({target_range}): {error}")
@@ -203,13 +203,13 @@ class SpreadsheetDB:
             # ヘッダー情報は、もしシート作成時に必要なら指定
             self.ensure_sheet_exists(sheet_name, headers=headers_if_create)
         except RuntimeError as e:
-             print(f"エラー: {e}")
-             return None # エラー時は None を返す
+            print(f"エラー: {e}")
+            return None  # エラー時は None を返す
 
         # --- 以降は元の append_rows の処理 ---
         if not isinstance(values, list) or not all(isinstance(row, list) for row in values):
-             print("エラー: valuesはリストのリストである必要があります。")
-             return None
+            print("エラー: valuesはリストのリストである必要があります。")
+            return None
         if not values:
             print("追加するデータがありません。")
             return None
@@ -217,7 +217,7 @@ class SpreadsheetDB:
         print(f"シート '{sheet_name}' に {len(values)} 行追加中...")
         try:
             body = {'values': values}
-            target_range = f"'{sheet_name}'!A1" # 範囲はA1で良い (appendは末尾に追加)
+            target_range = f"'{sheet_name}'!A1"  # 範囲はA1で良い (appendは末尾に追加)
             result = self.sheet_api.values().append(
                 spreadsheetId=self.spreadsheet_id,
                 range=target_range,
@@ -235,7 +235,6 @@ class SpreadsheetDB:
             print(f"データの追加中に予期せぬエラーが発生しました ({sheet_name}): {e}")
             return None
 
-
     def update_range(self, sheet_name, range_name, values, headers_if_create=None):
         """
         指定された範囲のセルを更新します。
@@ -244,13 +243,13 @@ class SpreadsheetDB:
         try:
             self.ensure_sheet_exists(sheet_name, headers=headers_if_create)
         except RuntimeError as e:
-             print(f"エラー: {e}")
-             return None
+            print(f"エラー: {e}")
+            return None
 
         # --- 以降は元の update_range の処理 ---
         if not isinstance(values, list) or not all(isinstance(row, list) for row in values):
-             print("エラー: valuesはリストのリストである必要があります。")
-             return None
+            print("エラー: valuesはリストのリストである必要があります。")
+            return None
         if not values:
             print("更新するデータがありません。")
             return None
@@ -274,7 +273,6 @@ class SpreadsheetDB:
             print(f"データの更新中に予期せぬエラーが発生しました ({target_range}): {e}")
             return None
 
-
     def find_rows(self, sheet_name, search_column_header, search_value, return_dataframe=True, headers_if_create=None):
         """
         指定された列ヘッダーの値に基づいて行を検索します（完全一致）。
@@ -284,16 +282,16 @@ class SpreadsheetDB:
             # シート作成時に検索対象のヘッダーが含まれるように指定
             self.ensure_sheet_exists(sheet_name, headers=headers_if_create)
         except RuntimeError as e:
-             print(f"エラー: {e}")
-             return pd.DataFrame() if return_dataframe else [] # エラー時は空を返す
+            print(f"エラー: {e}")
+            return pd.DataFrame() if return_dataframe else []  # エラー時は空を返す
 
         # --- 以降は元の find_rows の処理をベースにする ---
         print(f"シート '{sheet_name}' で '{search_column_header}' が '{search_value}' の行を検索中...")
         # headers_if_create を get_data にも渡す
         all_data_df = self.get_data(sheet_name, return_dataframe=True, headers_if_create=headers_if_create)
 
-        if all_data_df is None: # get_data でエラー
-             return None
+        if all_data_df is None:  # get_data でエラー
+            return None
         if all_data_df.empty:
             print("検索対象のデータがありません。")
             return pd.DataFrame() if return_dataframe else []
@@ -314,9 +312,8 @@ class SpreadsheetDB:
             else:
                 return found_df.values.tolist()
         except Exception as e:
-             print(f"検索処理中にエラーが発生しました: {e}")
-             return pd.DataFrame() if return_dataframe else []
-
+            print(f"検索処理中にエラーが発生しました: {e}")
+            return pd.DataFrame() if return_dataframe else []
 
     def clear_range(self, sheet_name, range_name, headers_if_create=None):
         """
@@ -326,8 +323,8 @@ class SpreadsheetDB:
         try:
             self.ensure_sheet_exists(sheet_name, headers=headers_if_create)
         except RuntimeError as e:
-             print(f"エラー: {e}")
-             return None # エラー時は None を返す
+            print(f"エラー: {e}")
+            return None  # エラー時は None を返す
 
         # --- 以降は元の clear_range の処理 ---
         target_range = f"'{sheet_name}'!{range_name}"
@@ -345,7 +342,7 @@ class SpreadsheetDB:
             if cleared_range != 'N/A':
                 print(f"範囲'{cleared_range}'の内容がクリアされました。")
             else:
-                 print(f"範囲'{target_range}'のクリアが要求されました (応答にclearedRangeなし)。")
+                print(f"範囲'{target_range}'のクリアが要求されました (応答にclearedRangeなし)。")
             return result
         except HttpError as error:
             # クリア対象範囲が存在しない場合などもエラーになる可能性がある

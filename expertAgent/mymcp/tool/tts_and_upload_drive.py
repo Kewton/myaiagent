@@ -5,11 +5,11 @@ import uuid
 from typing import Optional
 from pathlib import Path
 from mymcp.googleapis.drive import SpreadsheetDB
-import os
 import datetime
+from core.config import settings
 
 
-SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
+SPREADSHEET_ID = settings.SPREADSHEET_ID
 SHEET_NAME = 'podcast'
 
 

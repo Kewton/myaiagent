@@ -3,7 +3,7 @@ from mymcp.tool.generate_melmaga_script import generate_melmaga_script
 from mymcp.googleapis.gmail.send import send_email
 import ast
 from mymcp.utils.generate_subject_from_text import generate_subject_from_text
-import os
+from core.config import settings
 
 
 def safe_string_to_list(input_str: str) -> list | None:
@@ -79,7 +79,7 @@ def generate_melmaga_and_send_email_from_urls(urls: list | str):
             input_info += "----------------"
         body = generate_melmaga_script(input_info)
         subject = generate_subject_from_text(body)
-        return send_email(os.getenv("MAIL_TO"), subject, body)
+        return send_email(settings.MAIL_TO, subject, body)
     
     except ValueError as e:
         print(f"ValueError: {e}")

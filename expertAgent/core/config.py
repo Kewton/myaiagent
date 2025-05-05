@@ -14,7 +14,9 @@ class Settings(BaseSettings):
     GRAPH_AGENT_MODEL: str = Field(default="GRAPH_AGENT_MODEL", env="GRAPH_AGENT_MODEL")
     GOOGLE_APIS_TOKEN_PATH: str = Field(default="GOOGLE_APIS_TOKEN_PATH", env="GOOGLE_APIS_TOKEN_PATH")
     GOOGLE_APIS_CREDENTIALS_PATH: str = Field(default="GOOGLE_APIS_CREDENTIALS_PATH", env="GOOGLE_APIS_CREDENTIALS_PATH")
-
+    PODCAST_SCRIPT_DEFAULT_MODEL: str = Field(default="gpt-4o-mini", env="PODCAST_SCRIPT_DEFAULT_MODEL")
+    MAIL_TO: str = Field(default="MAIL_TO", env="MAIL_TO")
+    SPREADSHEET_ID: str = Field(default="SPREADSHEET_ID", env="SPREADSHEET_ID")
 
 # インスタンス生成
 settings = Settings()

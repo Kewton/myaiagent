@@ -1,14 +1,14 @@
+from core.config import settings
 import google.generativeai as genai
-import os
 
 
 def getmodel():
     # --- 1. APIクライアントの準備 ---
     try:
         # 環境変数などからAPIキーを取得
-        GOOGLE_API_KEY = os.getenv('GEMINI_API_KEY')
+        GOOGLE_API_KEY = settings.GOOGLE_API_KEY
         if not GOOGLE_API_KEY:
-            raise ValueError("環境変数 'GEMINI_API_KEY' が設定されていません。")
+            raise ValueError("環境変数 'GOOGLE_API_KEY' が設定されていません。")
 
         genai.configure(api_key=GOOGLE_API_KEY)
 

@@ -4,6 +4,7 @@ import google.generativeai as genai
 from bs4 import BeautifulSoup
 from pydantic import BaseModel, Field
 from mymcp.utils.html2markdown import getMarkdown
+from core.config import settings
 
 
 class GoogleSearchResult(BaseModel):
@@ -40,7 +41,7 @@ def googleSearchAgent(_input: str) -> str:
         )
     """
     # APIキーの取得と設定（環境変数から取得する）
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    genai.configure(api_key=settings.GOOGLE_API_KEY)
     model = genai.GenerativeModel('models/gemini-1.5-pro')
 
     _content = f"""

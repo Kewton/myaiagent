@@ -11,10 +11,10 @@ from mymcp.tool.google_search_by_gemini import googleSearchAgent
 from mymcp.tool.tts_and_upload_drive import tts_and_upload_drive
 from mymcp.utils.html2markdown import getMarkdown
 from mcp.server.fastmcp import FastMCP
-import os
+from core.config import settings
 
 
-PODCAST_SCRIPT_DEFAULT_MODEL = os.getenv('PODCAST_SCRIPT_DEFAULT_MODEL', "gpt-4o-mini")
+PODCAST_SCRIPT_DEFAULT_MODEL = settings.PODCAST_SCRIPT_DEFAULT_MODEL
 mcp = FastMCP("myMcp")
 
 
@@ -38,7 +38,7 @@ async def send_email_tool(body: str) -> str:
         str: 成功時は成功メッセージ、失敗時はエラーメッセージ。
     """
     subject = generate_subject_from_text(body)
-    return send_email(os.getenv("MAIL_TO"), subject, body)
+    return send_email(settings.MAIL_TO, subject, body)
 
 
 @mcp.tool()
