@@ -1,8 +1,8 @@
-from app.utils.html2markdown import getMarkdown
-from app.tool.generate_melmaga_script import generate_melmaga_script
-from app.googleapis.gmail.send import send_email
+from mymcp.utils.html2markdown import getMarkdown
+from mymcp.tool.generate_melmaga_script import generate_melmaga_script
+from mymcp.googleapis.gmail.send import send_email
 import ast
-from app.utils.generate_subject_from_text import generate_subject_from_text
+from mymcp.utils.generate_subject_from_text import generate_subject_from_text
 import os
 
 

@@ -1,27 +1,22 @@
 from typing import Any
 import httpx
 from typing import Dict
-from app.googleapis.gmail.readonly import get_emails_by_keyword
-from app.googleapis.gmail.send import send_email
-from app.utils.generate_subject_from_text import generate_subject_from_text
-from app.specializedtool.generate_melmaga_script import generate_melmaga_and_send_email_from_urls
-from app.tool.generate_melmaga_script import generate_melmaga_script
-from app.tool.generate_podcast_script import generate_podcast_script, generate_podcast_mp3_and_upload
-from app.tool.google_search_by_gemini import googleSearchAgent
-from app.tool.tts_and_upload_drive import tts_and_upload_drive
-from app.utils.html2markdown import getMarkdown
+from mymcp.googleapis.gmail.readonly import get_emails_by_keyword
+from mymcp.googleapis.gmail.send import send_email
+from mymcp.utils.generate_subject_from_text import generate_subject_from_text
+from mymcp.specializedtool.generate_melmaga_script import generate_melmaga_and_send_email_from_urls
+from mymcp.tool.generate_melmaga_script import generate_melmaga_script
+from mymcp.tool.generate_podcast_script import generate_podcast_script, generate_podcast_mp3_and_upload
+from mymcp.tool.google_search_by_gemini import googleSearchAgent
+from mymcp.tool.tts_and_upload_drive import tts_and_upload_drive
+from mymcp.utils.html2markdown import getMarkdown
 from mcp.server.fastmcp import FastMCP
 import os
 
 
 PODCAST_SCRIPT_DEFAULT_MODEL = os.getenv('PODCAST_SCRIPT_DEFAULT_MODEL', "gpt-4o-mini")
-#HOST = os.getenv('HOST', "127.0.0.1")
-#PORT = os.getenv('PORT', 8001)
-
-# Initialize FastMCP server
-#mcp = FastMCP("weather", host=HOST, port=PORT)
-
 mcp = FastMCP("myMcp")
+
 
 @mcp.tool()
 async def gmail_search_search_tool(keywrod: str, top: int = 5) -> Dict:
@@ -163,6 +158,6 @@ async def getMarkdown_tool(input_url: str) -> str:
     """
     return getMarkdown(input_url)
 
-# if __name__ == "__main__":
-#     print("Starting weather MCP server...")
-#     mcp.run(transport='sse')
+
+if __name__ == "__main__":
+    mcp.run(transport='stdio')

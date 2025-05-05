@@ -1,6 +1,6 @@
-from app.tool.tts_and_upload_drive import tts_and_upload_drive
-from app.utils.generate_subject_from_text import generate_subject_from_text
-from app.utils.execllm import execLlmApi
+from mymcp.tool.tts_and_upload_drive import tts_and_upload_drive
+from mymcp.utils.generate_subject_from_text import generate_subject_from_text
+from mymcp.utils.execllm import execLlmApi
 
 
 def generate_podcast_mp3_and_upload(topic_details: str, model_name: str = "gpt-4o-mini", subject_max_length: int = 25) -> str:

@@ -18,7 +18,7 @@ async def make_graph():
         {
             "my-mcp-tool": {
                 "command": "python",
-                "args": "/Users/maenokota/share/work/github_kewton/v0.2/myaiagent/expertAgent/mcp/sse.py",
+                "args": ["-m", "mymcp.main"],
                 "transport": "stdio",
             }
         }

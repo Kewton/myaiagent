@@ -1,4 +1,4 @@
-from app.main import mcp
+from .main import mcp
 
 
 if __name__ == "__main__":

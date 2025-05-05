@@ -1,10 +1,10 @@
-from app.googleapis.drive import resumable_upload, get_google_drive_file_links, get_or_create_folder, upload_file
-from app.tts.tts import tts
-from app.utils.file_operation import delete_file
+from mymcp.googleapis.drive import resumable_upload, get_google_drive_file_links, get_or_create_folder, upload_file
+from mymcp.tts.tts import tts
+from mymcp.utils.file_operation import delete_file
 import uuid
 from typing import Optional
 from pathlib import Path
-from app.googleapis.drive import SpreadsheetDB
+from mymcp.googleapis.drive import SpreadsheetDB
 import os
 import datetime
 

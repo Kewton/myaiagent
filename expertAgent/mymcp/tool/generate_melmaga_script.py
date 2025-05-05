@@ -1,4 +1,4 @@
-from app.utils.execllm import execLlmApi
+from mymcp.utils.execllm import execLlmApi
 
 
 def generate_melmaga_script(input_info: str, model_name: str = "gpt-4o-mini"):

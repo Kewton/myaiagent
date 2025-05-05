@@ -1,7 +1,7 @@
 import html2text
-from app.googleapis.drive import get_or_create_folder, upload_file
+from mymcp.googleapis.drive import get_or_create_folder, upload_file
 from bs4 import BeautifulSoup, NavigableString
-from app.utils.file_operation import delete_file
+from mymcp.utils.file_operation import delete_file
 import re
 import requests
 import uuid

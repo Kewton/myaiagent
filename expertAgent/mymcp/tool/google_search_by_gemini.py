@@ -3,7 +3,7 @@ from typing import List
 import google.generativeai as genai
 from bs4 import BeautifulSoup
 from pydantic import BaseModel, Field
-from app.utils.html2markdown import getMarkdown
+from mymcp.utils.html2markdown import getMarkdown
 
 
 class GoogleSearchResult(BaseModel):

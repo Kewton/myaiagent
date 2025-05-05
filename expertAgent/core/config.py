@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     SSE_SERVER_PARAMS_URL: str = Field(default="SSE_SERVER_PARAMS_URL", env="SSE_SERVER_PARAMS_URL")
     ADK_AGENT_MODEL: str = Field(default="ADK_AGENT_MODEL", env="ADK_AGENT_MODEL")
     GRAPH_AGENT_MODEL: str = Field(default="GRAPH_AGENT_MODEL", env="GRAPH_AGENT_MODEL")
+    GOOGLE_APIS_TOKEN_PATH: str = Field(default="GOOGLE_APIS_TOKEN_PATH", env="GOOGLE_APIS_TOKEN_PATH")
+    GOOGLE_APIS_CREDENTIALS_PATH: str = Field(default="GOOGLE_APIS_CREDENTIALS_PATH", env="GOOGLE_APIS_CREDENTIALS_PATH")
 
 
 # インスタンス生成

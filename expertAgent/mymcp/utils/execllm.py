@@ -1,14 +1,14 @@
+from core.config import settings
 from openai import OpenAI
 import google.generativeai as genai
-import os
-
 
 chatgptapi_client = OpenAI(
-  api_key=os.environ.get("OPENAI_API_KEY")
+    api_key=settings.OPENAI_API_KEY,
 )
 
-
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+genai.configure(
+    api_key=settings.GOOGLE_API_KEY,
+)
 
 
 def isChatGptAPI(_selected_model):

@@ -1,4 +1,4 @@
-from app.googleapis.googleapi_services import get_googleapis_service
+from mymcp.googleapis.googleapi_services import get_googleapis_service
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from googleapiclient.errors import HttpError

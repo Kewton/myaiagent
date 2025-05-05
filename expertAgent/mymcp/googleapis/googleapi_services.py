@@ -4,7 +4,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from google.auth.exceptions import RefreshError # RefreshErrorをインポート
-
+from core.config import settings
 
 SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',
@@ -15,8 +15,10 @@ SCOPES = [
 
 # 環境変数からパスを取得（Noneの場合は空文字列などにしても良いが、ここではNoneのまま扱う）
 # 環境変数が設定されていない場合はエラーになるようにする
-TOKEN_PATH = os.getenv("GOOGLE_APIS_TOKEN_PATH")
-CREDENTIALS_PATH = os.getenv("GOOGLE_APIS_CREDENTIALS_PATH")
+# TOKEN_PATH = os.getenv("GOOGLE_APIS_TOKEN_PATH")
+TOKEN_PATH = settings.GOOGLE_APIS_TOKEN_PATH
+# CREDENTIALS_PATH = os.getenv("GOOGLE_APIS_CREDENTIALS_PATH")
+CREDENTIALS_PATH = settings.GOOGLE_APIS_CREDENTIALS_PATH
 
 
 def get_googleapis_service(_serviceName):
