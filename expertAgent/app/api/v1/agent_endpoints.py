@@ -13,23 +13,22 @@ def home_hello_world():
     return {"message": "Hello World"}
 
 
-# @router.post("/aiagent/graph",
-#              summary="LangGraphのAIエージェントを実行します",
-#              description="LangGraphのAIエージェントを実行します")
-# async def aiagent_graph(request: AtandardAiAgentRequest):
-#     try:
-#         print("request.user_input")
-#         _input = f"""
-#         # メタ情報:
-#         - 現在の時刻は「{datetime.now()}」です。
+@router.post("/aiagent/sample",
+             summary="LangGraphのAIエージェントを実行します",
+             description="LangGraphのAIエージェントを実行します")
+async def aiagent_graph(request: AtandardAiAgentRequest):
+    try:
+        print("request.user_input")
+        _input = f"""
+        # メタ情報:
+        - 現在の時刻は「{datetime.now()}」です。
 
-#         # 指示書
-#         {request.user_input}
-#         """
-#         result = await ainvoke_graphagent(_input)
-#         _response = {"result": result}
-#         return AtandardAiAgentResponse(**_response)
-#     except Exception as e:
-#         print(f"An unexpected error occurred: {e}")
-#         raise HTTPException(status_code=500, detail="An internal server error occurred in the agent.")
-
+        # 指示書
+        {request.user_input}
+        """
+        result = await ainvoke_graphagent(_input)
+        _response = {"result": result}
+        return AtandardAiAgentResponse(**_response)
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        raise HTTPException(status_code=500, detail="An internal server error occurred in the agent.")

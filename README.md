@@ -13,4 +13,11 @@ uvicorn app.main:app --reload
 
 ```
 curl http://127.0.0.1:8000/aiagent-api/v1
+
+
+curl -X POST "http://127.0.0.1:8000/aiagent-api/v1/aiagent/sample" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "user_input": "ドラゴンボールの作者をメールで送信して"
+    }'
 ```
