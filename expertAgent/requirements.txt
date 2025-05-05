@@ -1,0 +1,24 @@
+# 共通
+python-dotenv
+requests
+# FastAPI
+fastapi
+uvicorn
+# LangGraph
+langchain-mcp-adapters
+langgraph
+langgraph-sdk
+langchain-openai
+# mcp
+mcp[cli]
+httpx
+anthropic
+python-dotenv
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+html2text
+openai
+requests
+beautifulsoup4
+pandas
