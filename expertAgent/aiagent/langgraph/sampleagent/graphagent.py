@@ -68,4 +68,4 @@ async def ainvoke_graphagent(query):
         }
         
         chat_history.append({"role": "assistant", "content": aiMessage})
-        return chat_history
+        return chat_history, aiMessage

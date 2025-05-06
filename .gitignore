@@ -8,3 +8,4 @@ credentials.json
 myworks/
 */log/*.log
 */log/*.log.*
+node_modules/

@@ -1,0 +1,27 @@
+{
+  "name": "graphaiserver",
+  "version": "1.0.0",
+  "description": "```bash npm init -y yarn add typescript --dev yarn add @types/node --dev npx tsc --init ```",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.15.12",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@graphai/agent_filters": "^1.0.1",
+    "@graphai/agents": "^2.0.0",
+    "@graphai/token_bound_string_agent": "^1.0.1",
+    "@graphai/vanilla": "^2.0.0",
+    "@graphai/vanilla_node_agents": "^1.0.1",
+    "@receptron/test_utils": "^2.0.0",
+    "express": "^5.1.0",
+    "graphai": "^1.0.12",
+    "ts-node": "^10.9.2"
+  }
+}
