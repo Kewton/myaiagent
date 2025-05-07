@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     PODCAST_SCRIPT_DEFAULT_MODEL: str = Field(default="gpt-4o-mini", env="PODCAST_SCRIPT_DEFAULT_MODEL")
     MAIL_TO: str = Field(default="MAIL_TO", env="MAIL_TO")
     SPREADSHEET_ID: str = Field(default="SPREADSHEET_ID", env="SPREADSHEET_ID")
+    OLLAMA_URL: str = Field(default="http://localhost:11434", env="OLLAMA_URL")
+    OLLAMA_DEF_SMALL_MODEL: str = Field(default="gemma3:27b-it-qat", env="OLLAMA_DEF_SMALL_MODEL")
+    OLLAMA_DEF_LARGE_MODEL: str = Field(default="gemma3:27b-it-qat", env="OLLAMA_DEF_LARGE_MODEL")
+
 
 # インスタンス生成
 settings = Settings()
