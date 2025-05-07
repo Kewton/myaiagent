@@ -8,12 +8,25 @@ from langchain_core.messages.tool import ToolMessage
 import asyncio
 import json
 from core.config import settings
+from langchain_google_genai import ChatGoogleGenerativeAI
+from aiagent.langgraph.util import isChatGptAPI, isGemini, isChatGPT_o
+from langchain_ollama import ChatOllama
 
 
 # Make the graph with MCP context
 @asynccontextmanager
 async def make_graph():
-    model = ChatOpenAI(model=settings.GRAPH_AGENT_MODEL)
+    if isChatGptAPI(settings.GRAPH_AGENT_MODEL) or isChatGPT_o(settings.GRAPH_AGENT_MODEL):
+        model = ChatOpenAI(model=settings.GRAPH_AGENT_MODEL)
+    elif isGemini(settings.GRAPH_AGENT_MODEL):
+        # gemini-2.5-flash-preview-04-17
+        model = ChatGoogleGenerativeAI(model=settings.GRAPH_AGENT_MODEL)
+    else:
+        model = ChatOllama(
+            model=settings.GRAPH_AGENT_MODEL,
+            base_url=settings.OLLAMA_URL,
+        )
+
     mcp_client = MultiServerMCPClient(
         {
             "my-mcp-tool": {

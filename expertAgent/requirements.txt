@@ -9,6 +9,8 @@ langchain-mcp-adapters
 langgraph
 langgraph-sdk
 langchain-openai
+langchain_google_genai
+langchain_ollama
 # mcp
 mcp[cli]
 httpx

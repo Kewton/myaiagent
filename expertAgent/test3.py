@@ -1,19 +1,33 @@
-from aiagent.langchain.utils.html2markdown import getMarkdown
-from aiagent.langchain.tool.generate_podcast_script import generate_podcast_script
-from dotenv import load_dotenv
-from aiagent.langchain.utils.html2markdown import getMarkdown
-from aiagent.langchain.utils.execllm import execLlmApi
+from core.logger import setup_logging
+from mymcp.utils.chatollama import chatOllama
 
-load_dotenv()
+setup_logging()
 
+_input = """
+ドラゴンボールの作者を教えてください
+/no_think
+"""
 
-# print(getMarkdown("https://news.yahoo.co.jp/articles/031edf378bc2b3f15dc6da4ed7f09b1569fd7929"))
+print(_input)
 
-_messages = [
-    {"role": "system", "content": "あなたは売れっ子メルマガです"},
-    {"role": "user", "content": "葛飾区についてのメルマガを執筆してください。"}
-]
-
-result = execLlmApi("gemini-2.0-flash", _messages)
+result = chatOllama([{"role": "user", "content": _input}], "qwen3:32b-q8_0")
 
 print(result)
+
+
+"""
+curl http://localhost:11434/api/generate -d '{
+  "model": "gemma3:27b-it-qat",
+  "prompt": "ドラゴンボールの作者を教えてください",
+  "stream": false
+}'
+
+curl http://localhost:11434/api/chat -d '{
+  "model": "gemma3:27b-it-qat",
+  "messages": [{"role": "user", "content": "ドラゴンボールの作者を教えてください"}],
+  "stream": false
+}'
+
+
+curl -X POST -H "Content-Type: application/json" -d '{"user_input": "ドラゴンボールの作者をメールで送信してください", "model_name": "1_hello-httpAgentFilter"}' http://localhost:3030/agent/sample
+"""

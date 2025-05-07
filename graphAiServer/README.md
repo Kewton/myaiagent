@@ -10,6 +10,7 @@ yarn add @graphai/agents
 yarn add @graphai/token_bound_string_agent
 yarn add @graphai/vanilla_node_agents
 yarn add @graphai/agent_filters
+yarn add dotenv
 ```
 
 ```bash
