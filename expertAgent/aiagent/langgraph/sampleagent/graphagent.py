@@ -9,8 +9,9 @@ import asyncio
 import json
 from core.config import settings
 from langchain_google_genai import ChatGoogleGenerativeAI
-from aiagent.langgraph.util import isChatGptAPI, isGemini, isChatGPT_o
+from aiagent.langgraph.util import isChatGptAPI, isGemini, isChatGPT_o, isClaude
 from langchain_ollama import ChatOllama
+from langchain_anthropic import ChatAnthropic
 
 
 # Make the graph with MCP context
@@ -21,6 +22,8 @@ async def make_graph():
     elif isGemini(settings.GRAPH_AGENT_MODEL):
         # gemini-2.5-flash-preview-04-17
         model = ChatGoogleGenerativeAI(model=settings.GRAPH_AGENT_MODEL)
+    elif isClaude(settings.GRAPH_AGENT_MODEL):
+        model = ChatAnthropic(model=settings.GRAPH_AGENT_MODEL)
     else:
         model = ChatOllama(
             model=settings.GRAPH_AGENT_MODEL,

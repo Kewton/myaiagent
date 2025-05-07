@@ -30,3 +30,10 @@ def isGemini(_selected_model):
         return True
     else:
         return False
+
+
+def isClaude(_selected_model):
+    if "claude" in _selected_model:
+        return True
+    else:
+        return False
