@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+      /* ===== 出力設定 ===== */
+      "target": "ES2020",
+      "module": "CommonJS",
+      "moduleResolution": "node",
+      "rootDir": "src",
+      "outDir": "dist",
+  
+      /* ===== 型・互換設定 ===== */
+      "esModuleInterop": true,
+      "types": ["node", "js-yaml"],      // fs, path, process などの型を解決
+      "lib": ["ES2020"],
+      "strict": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true
+    },
+  
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules", "dist"]
+  }
+  

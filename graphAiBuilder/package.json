@@ -1,0 +1,22 @@
+{
+    "name": "graphai-builder",
+    "version": "0.1.0",
+    "description": "Mermaid → GraphAI YAML converter CLI",
+    "main": "dist/graphaibuilder.js",
+    "bin": {
+      "graphaibuilder": "./dist/graphaibuilder.js"
+    },  
+    "scripts": {
+      "build": "tsc",
+      "cli": "npm run build && node dist/graphaibuilder.js"
+    },
+    "dependencies": {
+      "js-yaml": "^4.1.0"
+    },
+    "devDependencies": {
+      "typescript": "^5.4.4",
+      "@types/node": "^20.11.19",
+      "@types/js-yaml": "^4.0.9"
+    }
+  }
+  
