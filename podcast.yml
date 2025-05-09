@@ -1,0 +1,56 @@
+version: 0.5
+loop:
+  while: :outline
+nodes:
+  source:
+    value:
+      keywords: 量子コンピューティング
+  plannerPrompt:
+    agent: stringTemplateAgent
+    inputs:
+      keywords: :source.keywords
+    console:
+      before: plannerPrompt start 
+      after: true
+    params:
+      template: |-
+        あなたは優れたポッドキャストの編集者兼ライターです。
+        以下のキーワードをもとに情報を収集し、あなたの知見と合わせてポッドキャストの台本のアウトラインを日本語で作成してください。
+        また、各章で深掘りすべき具体的なキーワードも考えてください。（一般的な表現は使わず、具体的なキーワードを考えてください。）
+        なお、返却は JSON 形式で行い、コメントやマークダウンは含めないでください。
+
+
+        RESPONSE FORMAT:
+        {
+          "outline": [
+              {
+                "title": "...",
+                "overview": "...",
+                "expected_words": 200,
+                "query_hint": ["...", "..."]
+              }
+          ]
+        }
+
+        User keywords: ${keywords}
+  planner:
+    agent: fetchAgent
+    console:
+      before: planner start
+    inputs:
+      url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/jsonoutput
+      method: POST
+      body:
+        user_input: :plannerPrompt
+  plannerResult:
+    agent: stringTemplateAgent
+    inputs:
+      text: :planner.result.outline.$0.title
+      query_hint: :planner.result.outline.$0.query_hint
+    console:
+      before: plannerResult start 
+      after: true
+    params:
+      template: |-
+        結果は ${text} です。
+        [${query_hint}] について詳しく教えてください。

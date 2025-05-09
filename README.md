@@ -21,3 +21,10 @@ curl -X POST "http://127.0.0.1:8000/aiagent-api/v1/aiagent/sample" \
       "user_input": "ドラゴンボールの作者をメールで送信して"
     }'
 ```
+
+# graphAI .env
+```
+OPENAI_API_KEY=<OPENAI_API_KEY>
+GEMINI_API_KEY=<GEMINI_API_KEY>
+CLAUDE_API_KEY=<CLAUDE_API_KEY>
+```
