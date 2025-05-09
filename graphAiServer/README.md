@@ -18,3 +18,9 @@ node src/app.js
 # 動作確認
 curl http://localhost:3000/test
 ```
+
+# .env
+```
+PORT=3030
+MODEL_BASE_PATH=<MODEL_BASE_PATH>
+```
