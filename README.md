@@ -22,7 +22,13 @@ curl -X POST "http://127.0.0.1:8000/aiagent-api/v1/aiagent/sample" \
     }'
 ```
 
-# graphAI .env
+# graphAI
+## 1. インストール
+```
+npm i -g  @receptron/graphai_cli
+```
+
+## .env
 ```
 OPENAI_API_KEY=<OPENAI_API_KEY>
 GEMINI_API_KEY=<GEMINI_API_KEY>
