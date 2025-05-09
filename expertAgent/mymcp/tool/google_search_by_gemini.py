@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from pydantic import BaseModel, Field
 from mymcp.utils.html2markdown import getMarkdown
 from core.config import settings
+from mymcp.utils.extract_knowledge_from_text import extract_knowledge_from_text
 
 
 class GoogleSearchResult(BaseModel):
@@ -78,9 +79,9 @@ def googleSearchAgent(_input: str) -> str:
         if hasattr(chunk.web, 'uri'):
             uris.append(chunk.web.uri)
 
-    markdowns.append({"GoogleApiResponse":response.text})
+    markdowns.append({"GoogleApiResponse": response.text})
     for uri in uris:
-        markdowns.append(getMarkdown(uri, False))
+        markdowns.append(extract_knowledge_from_text(getMarkdown(uri, False)))
 
     # pydanticモデルで結果を生成
     result_model = GoogleSearchResult(

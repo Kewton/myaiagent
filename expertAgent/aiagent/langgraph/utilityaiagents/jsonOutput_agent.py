@@ -3,10 +3,9 @@ import re
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import JsonOutputParser
 
-llm_openai = ChatOpenAI(model="gpt-4o-mini", temperature=0.3)
-
 
 async def jsonOutputagent(query: str):
+    llm_openai = ChatOpenAI(model="gpt-4o-mini", temperature=0.3)
     outline_json = (await llm_openai.ainvoke(query)).content
     print("~~~~ outline_json [start]~~~~")
     print(outline_json)

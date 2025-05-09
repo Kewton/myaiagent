@@ -1,6 +1,7 @@
 {
   "name": "graphaiserver",
   "version": "1.0.0",
+  "type": "module",
   "description": "```bash npm init -y yarn add typescript --dev yarn add @types/node --dev npx tsc --init ```",
   "main": "index.js",
   "scripts": {

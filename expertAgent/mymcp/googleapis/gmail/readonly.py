@@ -2,13 +2,13 @@ from mymcp.googleapis.googleapi_services import get_googleapis_service
 from mymcp.utils.html_operation import convert_html_to_markdown
 import base64
 from email.mime.text import MIMEText
-
+from mymcp.utils.extract_knowledge_from_text import extract_knowledge_from_text
 
 SERVICE_NAME = "gmail"
 
 
 # 件名に指定されたキーワードが含まれるメールを検索し、本文を取得する関数
-def get_emails_by_keyword(subject_keyword, top=5):
+def get_emails_by_keyword(subject_keyword: str, top: int = 5):
     """
     指定された件名キーワードを含むメールを検索し、本文を取得します。
     件名キーワードは部分一致で検索されます。
@@ -61,4 +61,4 @@ def get_emails_by_keyword(subject_keyword, top=5):
         else:
             print(f"Could not extract body from email with ID {message['id']}")
 
-    return {"result": email_bodies}
+    return {"result": extract_knowledge_from_text(email_bodies)}

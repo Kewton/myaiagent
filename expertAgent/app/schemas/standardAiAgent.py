@@ -1,12 +1,11 @@
 from pydantic import BaseModel
-from typing import List, Dict, Any # List, Dict, Any をインポート
+from typing import List, Literal
 
 
 # チャットメッセージの形式を表すモデル
 class ChatMessage(BaseModel):
-    role: str
+    role: Literal["system", "user", "assistant", "tool"]
     content: str
-    # 必要であれば他のフィールド (例: name: Optional[str] = None)
 
 
 class StandardAiAgentResponse(BaseModel):

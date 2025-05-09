@@ -10,8 +10,6 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str = Field(default="ANTHROPIC_API_KEY", env="ANTHROPIC_API_KEY")
     LOG_DIR: str = Field(default="./", env="LOG_DIR")
     LOG_LEVEL: str = Field(default="INFO", env="LOG_LEVEL")
-    SSE_SERVER_PARAMS_URL: str = Field(default="SSE_SERVER_PARAMS_URL", env="SSE_SERVER_PARAMS_URL")
-    ADK_AGENT_MODEL: str = Field(default="ADK_AGENT_MODEL", env="ADK_AGENT_MODEL")
     GRAPH_AGENT_MODEL: str = Field(default="GRAPH_AGENT_MODEL", env="GRAPH_AGENT_MODEL")
     GOOGLE_APIS_TOKEN_PATH: str = Field(default="GOOGLE_APIS_TOKEN_PATH", env="GOOGLE_APIS_TOKEN_PATH")
     GOOGLE_APIS_CREDENTIALS_PATH: str = Field(default="GOOGLE_APIS_CREDENTIALS_PATH", env="GOOGLE_APIS_CREDENTIALS_PATH")
@@ -21,6 +19,7 @@ class Settings(BaseSettings):
     OLLAMA_URL: str = Field(default="http://localhost:11434", env="OLLAMA_URL")
     OLLAMA_DEF_SMALL_MODEL: str = Field(default="gemma3:27b-it-qat", env="OLLAMA_DEF_SMALL_MODEL")
     OLLAMA_DEF_LARGE_MODEL: str = Field(default="gemma3:27b-it-qat", env="OLLAMA_DEF_LARGE_MODEL")
+    EXTRACT_KNOWLEDGE_MODEL: str = Field(default="gemma3:27b-it-qat", env="EXTRACT_KNOWLEDGE_MODEL")
 
 
 # インスタンス生成

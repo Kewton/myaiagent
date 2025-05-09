@@ -1,6 +1,9 @@
 from core.config import settings
 from openai import OpenAI
 import google.generativeai as genai
+from mymcp.utils.chatollama import chatOllama
+from app.schemas.standardAiAgent import ChatMessage
+from typing import List
 
 chatgptapi_client = OpenAI(
     api_key=settings.OPENAI_API_KEY,
@@ -80,7 +83,7 @@ def buildInpurtMessages(_messages, encoded_file):
     return _inpurt_messages, _systemrole
 
 
-def buildInpurtMessagesForGemini(_messages):
+def buildInpurtMessagesForGemini(_messages: List[ChatMessage]):
     system_instruction = None
     contents_for_api = []
 
@@ -102,51 +105,24 @@ def buildInpurtMessagesForGemini(_messages):
     return contents_for_api, system_instruction
 
 
-def execLlmApi(_selected_model, _messages, encoded_file=""):
-    if isChatGptAPI(_selected_model):
-        if isChatGPTImageAPI(_selected_model) and len(encoded_file) > 0:
-            _inpurt_messages = []
-            _inpurt_messages.append(_messages[0])
-            _inpurt_messages.append(
-                {"role": "user", "content": [
-                    {"type": "text", "text": _messages[1]["content"]},
-                    {"type": "image_url", "image_url": {
-                        "url": f"data:image/jpeg;base64,{encoded_file}"}}
-                ]}
-            )
-            response = chatgptapi_client.chat.completions.create(
-                model=_selected_model,
-                messages=_inpurt_messages
-            )
-        else:
-            response = chatgptapi_client.chat.completions.create(
-                model=_selected_model,
-                messages=_messages
-            )
-        return response.choices[0].message.content
-
-    elif isChatGPT_o(_selected_model):
-        # ToDo
-        #_inpurt_messages, _systemrole = buildInpurtMessages(_messages, encoded_file)
+def execLlmApi(_selected_model: str, _messages: List[ChatMessage]):
+    if isChatGptAPI(_selected_model) or isChatGPT_o(_selected_model):
         response = chatgptapi_client.chat.completions.create(
             model=_selected_model,
             messages=_messages
         )
-
         return response.choices[0].message.content
 
     elif isGemini(_selected_model):
         _inpurt_messages, _systemrole = buildInpurtMessagesForGemini(_messages)
-
         # モデル名を有効なものにすること！ (例: "gemini-1.5-flash-latest")
         model = genai.GenerativeModel(
             model_name=_selected_model,  # ★★★ モデル名を有効なものに！ ★★★
             system_instruction=_systemrole,
         )
         response = model.generate_content(_inpurt_messages)
-        print("@@@@@@@@@@@")
-        print(response.text)
         return response.text
 
     else:
-        return {}
+        # Ollama APIを使用してチャットを行う関数
+        return chatOllama(_messages, _selected_model)

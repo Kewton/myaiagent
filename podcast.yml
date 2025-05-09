@@ -38,7 +38,7 @@ nodes:
     console:
       before: planner start
     inputs:
-      url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/jsonoutput
+      url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/jsonoutput
       method: POST
       body:
         user_input: :plannerPrompt
