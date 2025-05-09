@@ -45,12 +45,27 @@ nodes:
   plannerResult:
     agent: stringTemplateAgent
     inputs:
-      text: :planner.result.outline.$0.title
+      title: :planner.result.outline.$0.title
+      overview: :planner.result.outline.$0.overview
       query_hint: :planner.result.outline.$0.query_hint
     console:
       before: plannerResult start 
       after: true
     params:
       template: |-
-        結果は ${text} です。
-        [${query_hint}] について詳しく教えてください。
+        あなたは優れた情報収集者です。
+        以下のキーワードをもとに情報を収集し、あなたの知見と合わせてポッドキャストの台本の作成に必要な情報（用語の意味や概念など）を日本語で整理してください。
+        
+        Title：${title}
+        Overview：${overview}
+        Query_hint: ${query_hint}
+  explorer:
+    agent: fetchAgent
+    console:
+      before: explorer start
+      after: true
+    inputs:
+      url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/explorer
+      method: POST
+      body:
+        user_input: :plannerResult

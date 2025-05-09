@@ -3,6 +3,7 @@ from mymcp.googleapis.gmail.readonly import get_emails_by_keyword
 from mymcp.tool.google_search_by_gemini import googleSearchAgent
 from mymcp.utils.html2markdown import getMarkdown
 from mcp.server.fastmcp import FastMCP
+from mymcp.utils.extract_knowledge_from_text import extract_knowledge_from_text
 
 
 mcp = FastMCP("explorer")
@@ -48,7 +49,7 @@ async def getMarkdown_tool(input_url: str) -> str:
     Returns:
         str: マークダウン形式に変換されたテキスト。
     """
-    return getMarkdown(input_url)
+    return extract_knowledge_from_text(getMarkdown(input_url))
 
 
 if __name__ == "__main__":

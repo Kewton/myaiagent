@@ -60,6 +60,7 @@ async def myaiagents(request: ExpertAiAgentRequest, agent_name: str):
                 "result": parsed_json,
                 "type": "jsonOutput"
             }
+            return ExpertAiAgentResponseJson(**_response)
         elif "explorer" in agent_name:
             print(f"request.user_input:{_input}")
             result = await exploreragent(_input)
@@ -67,7 +68,8 @@ async def myaiagents(request: ExpertAiAgentRequest, agent_name: str):
                 "result": result,
                 "type": "explorer"
             }
-        return ExpertAiAgentResponseJson(**_response)
+            return ExpertAiAgentResponse(**_response)
+        return {"message": "No matching agent found."}
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         raise HTTPException(status_code=500, detail="An internal server error occurred in the agent.")

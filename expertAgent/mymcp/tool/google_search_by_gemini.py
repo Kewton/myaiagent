@@ -6,9 +6,12 @@ from pydantic import BaseModel, Field
 from mymcp.utils.html2markdown import getMarkdown
 from core.config import settings
 from mymcp.utils.extract_knowledge_from_text import extract_knowledge_from_text
+from core.logger import getlogger
 
+logger = getlogger()
 
 class GoogleSearchResult(BaseModel):
+    text: str
     result: List[dict] = Field(..., description="Gemini APIから返されたテキストと参照されたURIから取得したHTMLをマークダウンファイル化したもの")
     search_entry_point: List[str] = Field(
         ..., description="検索結果ページへのリンクのリスト"
@@ -41,6 +44,7 @@ def googleSearchAgent(_input: str) -> str:
             uris=["https://ja.wikipedia.org/wiki/東京スカイツリー"]
         )
     """
+    logger.info(f"Google Searchを実行します。{settings.GOOGLE_API_KEY}")
     # APIキーの取得と設定（環境変数から取得する）
     genai.configure(api_key=settings.GOOGLE_API_KEY)
     model = genai.GenerativeModel('models/gemini-1.5-pro')
@@ -64,13 +68,15 @@ def googleSearchAgent(_input: str) -> str:
         tools='google_search_retrieval'
     )
 
-    # BeautifulSoupを用いてレンダリングされたHTMLからリンクを抽出
-    soup = BeautifulSoup(
-        response._result.candidates[0].grounding_metadata.search_entry_point.rendered_content,
-        'html.parser'
-    )
+    text = response._result.candidates[0].content.parts[0].text
 
-    links = [a['href'] for a in soup.find_all('a') if a.has_attr('href')]
+    # # BeautifulSoupを用いてレンダリングされたHTMLからリンクを抽出
+    # soup = BeautifulSoup(
+    #     response._result.candidates[0].grounding_metadata.search_entry_point.rendered_content,
+    #     'html.parser'
+    # )
+    links = []
+    # links = [a['href'] for a in soup.find_all('a') if a.has_attr('href')]
 
     uris = []
     markdowns = []
@@ -83,8 +89,14 @@ def googleSearchAgent(_input: str) -> str:
     for uri in uris:
         markdowns.append(extract_knowledge_from_text(getMarkdown(uri, False)))
 
+    logger.info("Google Searchの結果を取得しました。")
+    logger.info(f"Google Searchのテキスト: {text}")
+    logger.info(f"Google Searchの結果: {markdowns}")
+    logger.info(f"Google Searchのリンク: {links}")
+    logger.info(f"Google SearchのURI: {uris}")
     # pydanticモデルで結果を生成
     result_model = GoogleSearchResult(
+        text=text,
         result=markdowns,
         search_entry_point=links,
         uris=uris
