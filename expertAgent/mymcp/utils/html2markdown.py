@@ -44,6 +44,7 @@ def getMarkdown(url, isUpload=True):
                 folder_id = get_or_create_folder("./MyAiAgent/knowledge")
                 upload_file(f"{url}.md", md_file_path, 'text/plain', folder_id)
                 delete_file(str(md_file_path))
+            print("Markdown変換完了")
             return result
         else:
             return str(response.status_code) + "エラー"

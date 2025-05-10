@@ -11,17 +11,17 @@ from core.config import settings
 
 # Make the graph with MCP context
 @asynccontextmanager
-async def make_graph(_mcpmodule: str = "mymcp.stdioall", _graphname: str = "Tool Agent"):
-    if isChatGptAPI(settings.GRAPH_AGENT_MODEL) or isChatGPT_o(settings.GRAPH_AGENT_MODEL):
-        model = ChatOpenAI(model=settings.GRAPH_AGENT_MODEL)
-    elif isGemini(settings.GRAPH_AGENT_MODEL):
+async def make_graph(_mcpmodule: str = "mymcp.stdioall", _graphname: str = "Tool Agent", _model: str = settings.GRAPH_AGENT_MODEL):
+    if isChatGptAPI(_model) or isChatGPT_o(_model):
+        model = ChatOpenAI(model=_model)
+    elif isGemini(_model):
         # gemini-2.5-flash-preview-04-17
-        model = ChatGoogleGenerativeAI(model=settings.GRAPH_AGENT_MODEL)
-    elif isClaude(settings.GRAPH_AGENT_MODEL):
-        model = ChatAnthropic(model=settings.GRAPH_AGENT_MODEL)
+        model = ChatGoogleGenerativeAI(model=_model)
+    elif isClaude(_model):
+        model = ChatAnthropic(model=_model)
     else:
         model = ChatOllama(
-            model=settings.GRAPH_AGENT_MODEL,
+            model=_model,
             base_url=settings.OLLAMA_URL,
         )
 

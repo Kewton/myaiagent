@@ -1,23 +1,24 @@
 version: 0.5
-#loop:
-#  while: :outline
+loop:
+  while: :outline
 nodes:
   source:
     value:
-      keywords: 量子コンピューティング, LLM, AI, ChatGPT
+      keywords: 量子コンピューティング
   plannerPrompt:
     agent: stringTemplateAgent
     inputs:
       keywords: :source.keywords
     console:
       before: plannerPrompt start 
-      #after: true
+      after: true
     params:
       template: |-
         あなたは優れたポッドキャストの編集者兼ライターです。
-        以下のキーワードをもとに情報を収集し、あなたの知見と合わせてポッドキャストの台本のアウトラインを２部構成で日本語で作成してください。
+        以下のキーワードをもとに情報を収集し、あなたの知見と合わせてポッドキャストの台本のアウトラインを日本語で作成してください。
         また、各章で深掘りすべき具体的なキーワードも考えてください。（一般的な表現は使わず、具体的なキーワードを考えてください。）
         なお、返却は JSON 形式で行い、コメントやマークダウンは含めないでください。
+
 
         RESPONSE FORMAT:
         {
@@ -25,11 +26,7 @@ nodes:
               {
                 "title": "...",
                 "overview": "...",
-                "query_hint": ["...", "..."]
-              },
-              {
-                "title": "...",
-                "overview": "...",
+                "expected_words": 200,
                 "query_hint": ["...", "..."]
               }
           ]
@@ -40,7 +37,6 @@ nodes:
     agent: fetchAgent
     console:
       before: planner start
-      after: true
     inputs:
       url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/jsonoutput
       method: POST
@@ -55,7 +51,7 @@ nodes:
       query_hint: :planner.result.outline.$0.query_hint
     console:
       before: plannerResult_0 start 
-      #after: true
+      after: true
     params:
       template: |-
         あなたは優れた情報収集者です。
@@ -68,13 +64,41 @@ nodes:
     agent: fetchAgent
     console:
       before: explorer_0 start
-      #after: true
+      after: true
     timeout: 600000
     inputs:
       url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/explorer
       method: POST
       body:
         user_input: :plannerResult_0
+  explorerResult_0:
+    agent: stringTemplateAgent
+    inputs:
+      title: :planner.result.outline.$0.title
+      overview: :planner.result.outline.$0.overview
+      query_hint: :planner.result.outline.$0.query_hint
+      reference_Information: :explorer_0.result
+    console:
+      before: explorerResult_0 start 
+      after: true
+    params:
+      template: |-
+        あなたは優れたポッドキャストのライターです。
+        以下の情報をもとに、ポッドキャストの台本を作成してください。
+
+        Title：${title}
+        Overview：${overview}
+        Query_hint: ${query_hint}
+        Reference_Information: ${reference_Information}
+  generator_0:
+    agent: openAIAgent
+    params:
+      model: gpt-4.1
+    console:
+      before: generator_0 start 
+      after: true
+    inputs:
+      prompt: :explorerResult_0
   # ２章
   plannerResult_1:
     agent: stringTemplateAgent
@@ -84,7 +108,7 @@ nodes:
       query_hint: :planner.result.outline.$1.query_hint
     console:
       before: plannerResult_1 start 
-      #after: true
+      after: true
     params:
       template: |-
         あなたは優れた情報収集者です。
@@ -97,58 +121,45 @@ nodes:
     agent: fetchAgent
     console:
       before: explorer_1 start
-      #after: true
+      after: true
     timeout: 600000
     inputs:
       url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/explorer
       method: POST
       body:
         user_input: :plannerResult_1
-  # 統合
-  explorerResult:
+  explorerResult_1:
     agent: stringTemplateAgent
     inputs:
-      title_0: :planner.result.outline.$0.title
-      overview_0: :planner.result.outline.$0.overview
-      reference_Information_0: :explorer_0.result
-      title_1: :planner.result.outline.$1.title
-      overview_1: :planner.result.outline.$1.overview
-      reference_Information_1: :explorer_1.result
+      title: :planner.result.outline.$1.title
+      overview: :planner.result.outline.$1.overview
+      query_hint: :planner.result.outline.$1.query_hint
+      reference_Information: :explorer_1.result
     console:
-      before: explorerResult start 
-      #after: true
+      before: explorerResult_1 start 
     params:
       template: |-
         あなたは優れたポッドキャストのライターです。
-        以下の情報をもとに、1000文字程度でポッドキャストの台本を作成してください。
+        以下の情報をもとに、ポッドキャストの台本を作成してください。
 
-        # Title：${title}
-        ## Overview：
-        ${overview_0}
-        ## Reference_Information:
-        ${reference_Information_0}
-  
-        # Title：${title}
-        ## Overview：
-        ${overview_1}
-        ## Reference_Information:
-        ${reference_Information_1}
-  
-  generator:
+        Title：${title}
+        Overview：${overview}
+        Query_hint: ${query_hint}
+        Reference_Information: ${reference_Information}
+  generator_1:
     agent: openAIAgent
     params:
       model: gpt-4.1
     console:
-      before: generator start 
-      #after: true
+      before: generator_1 start 
     inputs:
-      prompt: :explorerResult
-
+      prompt: :explorerResult_1
+  # 統合
   output:
     agent: copyAgent
     console:
       before: output start
-      #after: true
     inputs:
-      result: :generator.text
+      result_0: :generator_0.text
+      result_1: :generator_1.text
     isResult: true

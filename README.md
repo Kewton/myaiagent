@@ -59,6 +59,17 @@ NODE_OPTIONS="--loader ts-node/esm" npx ts-node src/app.js
 
 ```bash
 curl http://localhost:3000/
+
+curl http://localhost:3030/agent/sample/
+
+
+curl -X POST "http://localhost:3030/agent/sample/" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "user_input": "量子コンピューティング, LLM, AI, ChatGPT",
+      "model_name": "podcast_map_test"
+    }'
+
 ```
 
 # graphAI
@@ -70,6 +81,16 @@ sudo npm i -g  @receptron/graphai_cli
 ## .env
 ```
 OPENAI_API_KEY=<OPENAI_API_KEY>
-GEMINI_API_KEY=<GEMINI_API_KEY>
+GOOGLE_GENAI_API_KEY=<GEMINI_API_KEY>
 CLAUDE_API_KEY=<CLAUDE_API_KEY>
+```
+
+```mermaid
+flowchart TD
+ source(source) -- keywords --> plannerPrompt
+ plannerPrompt(plannerPrompt) --> planner
+ planner(planner) -- result.outline --> podcast_info
+ podcast_info(podcast_info) -- research_summary --> podcast_info_output
+ podcast_info_output(podcast_info_output) -- text --> explorerResult
+ explorerResult(explorerResult) --> generator
 ```
