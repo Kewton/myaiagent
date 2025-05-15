@@ -7,14 +7,20 @@ from pathlib import Path
 from mymcp.googleapis.drive import SpreadsheetDB
 import datetime
 from core.config import settings
+from core.logger import getlogger
+
+logger = getlogger()
 
 
 SPREADSHEET_ID = settings.SPREADSHEET_ID
 SHEET_NAME = 'podcast'
 
 
-def tts_and_upload_drive(file_name, input_message):
+def tts_and_upload_drive(input_message, file_name):
     """ツールの本体ロジック（同期）"""
+    logger.info("tts_and_upload_driveを実行します")
+    logger.info(f"input_message: {input_message}")
+    logger.info(f"file_name: {file_name}")
     temp_dir = Path("./temp")
     speech_file_path: Optional[Path] = None # finally スコープで参照するため
 
@@ -44,9 +50,11 @@ def tts_and_upload_drive(file_name, input_message):
             # 生成されたファイルが存在し、空でないかを確認
             if not speech_file_path.is_file() or speech_file_path.stat().st_size == 0:
                 # TTS失敗時のエラーメッセージ
+                logger.error(f"TTS failed: File '{speech_file_path}' does not exist or is empty.")
                 return f"エラー: TTS処理に失敗しました。音声ファイルが生成されませんでした。Text: '{input_message[:50]}...'"
         except Exception as e:
             # TTS実行中の予期せぬエラー
+            logger.error(f"Error during TTS: {e}")
             return f"エラー: 音声ファイル生成中に予期せぬエラーが発生しました: {e}"
         print(f"[{name}] INFO: Speech file generated successfully.")
 
@@ -66,6 +74,7 @@ def tts_and_upload_drive(file_name, input_message):
             #     return f"エラー: Google Drive で見つかった '{target_folder_name}' はフォルダではありません (Type: {mimeType})。"
         except Exception as e:
             # フォルダ検索中のエラー
+            logger.error(f"Error during Google Drive folder search: {e}")
             return f"エラー: Google Drive フォルダ '{target_folder_name}' の検索中にエラーが発生しました: {e}"
         print(f"[{name}] INFO: Found folder ID: {folder_id}")
 
@@ -85,6 +94,7 @@ def tts_and_upload_drive(file_name, input_message):
                 return f"エラー: Google Drive へのファイル '{drive_filename}' のアップロードに失敗しました（ファイルIDが返されませんでした）。"
         except Exception as e:
             # アップロード中のエラー
+            logger.error(f"Error during Google Drive upload: {e}")
             return f"エラー: Google Drive へのアップロード中にエラーが発生しました: {e}"
         print(f"[{name}] INFO: File uploaded successfully. File ID: {uploaded_file_id}")
 
@@ -107,6 +117,7 @@ def tts_and_upload_drive(file_name, input_message):
             try:
                 temp_dir.mkdir(parents=True, exist_ok=True)
             except OSError as e:
+                logger.error(f"Error creating temporary directory '{temp_dir}': {e}")
                 return f"エラー: 一時ディレクトリ '{temp_dir}' の作成に失敗しました: {e}"
             unique_filename = f"{uuid.uuid4()}.md"
             md_file_path = temp_dir / unique_filename
@@ -115,6 +126,7 @@ def tts_and_upload_drive(file_name, input_message):
                 with open(md_file_path, 'w', encoding='utf-8') as f:
                     f.write(input_message)
             except IOError as e:
+                logger.error(f"Error writing to file '{md_file_path}': {e}")
                 print(f"ファイルの書き込みエラー: {e}")
 
             # googl drive にアップロード
@@ -129,11 +141,13 @@ def tts_and_upload_drive(file_name, input_message):
             ]
             db.append_rows(SHEET_NAME, new_products)
             # ---------------
-
+            
+            logger.info(f"音声ファイル「{drive_filename}」を Google Drive のフォルダ「{target_folder_name}」にアップロードしました。表示用リンク: {web_view_link}")
             return f"音声ファイル「{drive_filename}」を Google Drive のフォルダ「{target_folder_name}」にアップロードしました。表示用リンク: {web_view_link}"
 
         except Exception as e:
             # リンク取得中のエラー
+            logger.error(f"Error during link retrieval: {e}")
             return f"エラー: アップロードされたファイルのリンク取得中にエラーが発生しました (File ID: {uploaded_file_id}): {e}"
 
     finally:
@@ -146,4 +160,5 @@ def tts_and_upload_drive(file_name, input_message):
                 print(f"[{name}] INFO: Temporary file deleted.")
             except Exception as e:
                 # 一時ファイルの削除失敗は警告に留める (主要処理ではないため)
+                logger.warning(f"Failed to delete temporary file '{speech_file_path}': {e}")
                 print(f"[{name}] WARNING: Failed to delete temporary file '{speech_file_path}': {e}")

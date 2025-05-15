@@ -1,21 +1,27 @@
 version: 0.5
-#loop:
-#  while: :outline
 nodes:
+  # 1. キーワードを入力
   source:
     value:
-      keywords: 量子コンピューティング, LLM, AI, ChatGPT
-  plannerPrompt:
+      text: 最新のLLM技術トレンドとAIエージェントの動向とこれらの地球温暖化への影響
+  
+  common_param:
+    value:
+      target: 日本の熟練ITエンジニアかつ子育て世代
+
+  # 2. Plnnerが章に分割しアウトラインを生成
+  plannerPromptBuilder:
     agent: stringTemplateAgent
     inputs:
-      keywords: :source.keywords
+      keywords: :source.text
+      target: :common_param.target
     console:
       before: plannerPrompt start 
-      #after: true
+      after: true
     params:
       template: |-
         あなたは優れたポッドキャストの編集者兼ライターです。
-        以下のキーワードをもとに情報を収集し、あなたの知見と合わせてポッドキャストの台本のアウトラインを２部構成で日本語で作成してください。
+        以下のキーワードをもとに情報を収集し、ターゲット（${target}）向けにあなたの知見と合わせてポッドキャストの台本のアウトラインを導入・本編・結論の構成で日本語で作成してください。
         また、各章で深掘りすべき具体的なキーワードも考えてください。（一般的な表現は使わず、具体的なキーワードを考えてください。）
         なお、返却は JSON 形式で行い、コメントやマークダウンは含めないでください。
 
@@ -40,115 +46,162 @@ nodes:
     agent: fetchAgent
     console:
       before: planner start
-      after: true
     inputs:
+      # jsonフォーマットでの出力を行うユーティティエージェント
       url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/jsonoutput
       method: POST
       body:
-        user_input: :plannerPrompt
-  # １章
-  plannerResult_0:
-    agent: stringTemplateAgent
-    inputs:
-      title: :planner.result.outline.$0.title
-      overview: :planner.result.outline.$0.overview
-      query_hint: :planner.result.outline.$0.query_hint
-    console:
-      before: plannerResult_0 start 
-      #after: true
-    params:
-      template: |-
-        あなたは優れた情報収集者です。
-        以下のキーワードをもとに広く情報を収集し、あなたの知見と合わせてポッドキャストの台本の作成に必要な情報（用語の意味や概念など）を日本語で整理してください。
+        user_input: :plannerPromptBuilder
         
-        Title：${title}
-        Overview：${overview}
-        Query_hint: ${query_hint}
-  explorer_0:
-    agent: fetchAgent
-    console:
-      before: explorer_0 start
-      #after: true
-    timeout: 600000
+  # 3. Explorerが章毎に必要な情報を収集 ＊並列処理
+  explorer_mapper:
+    agent: mapAgent
     inputs:
-      url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/explorer
-      method: POST
-      body:
-        user_input: :plannerResult_0
-  # ２章
-  plannerResult_1:
-    agent: stringTemplateAgent
-    inputs:
-      title: :planner.result.outline.$1.title
-      overview: :planner.result.outline.$1.overview
-      query_hint: :planner.result.outline.$1.query_hint
+      rows: :planner.result.outline
     console:
-      before: plannerResult_1 start 
-      #after: true
+      before: explorer_mapper start
     params:
-      template: |-
-        あなたは優れた情報収集者です。
-        以下のキーワードをもとに広く情報を収集し、あなたの知見と合わせてポッドキャストの台本の作成に必要な情報（用語の意味や概念など）を日本語で整理してください。
-        
-        Title：${title}
-        Overview：${overview}
-        Query_hint: ${query_hint}
-  explorer_1:
-    agent: fetchAgent
-    console:
-      before: explorer_1 start
-      #after: true
-    timeout: 600000
-    inputs:
-      url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/explorer
-      method: POST
-      body:
-        user_input: :plannerResult_1
-  # 統合
-  explorerResult:
-    agent: stringTemplateAgent
-    inputs:
-      title_0: :planner.result.outline.$0.title
-      overview_0: :planner.result.outline.$0.overview
-      reference_Information_0: :explorer_0.result
-      title_1: :planner.result.outline.$1.title
-      overview_1: :planner.result.outline.$1.overview
-      reference_Information_1: :explorer_1.result
-    console:
-      before: explorerResult start 
-      #after: true
-    params:
-      template: |-
-        あなたは優れたポッドキャストのライターです。
-        以下の情報をもとに、1000文字程度でポッドキャストの台本を作成してください。
+      compositeResult: true
+    graph:
+      nodes:
+        explorerPromptBuilder:
+          agent: stringTemplateAgent
+          inputs:
+            title: :row.title
+            overview: :row.overview
+            query_hint: :row.query_hint
+          console:
+            before: explorerPromptBuilder start 
+          params:
+            template: |-
+              あなたは優れた情報収集者です。
+              以下のキーワードをもとに広く情報を収集し、あなたの知見と合わせてポッドキャストの台本の作成に必要な情報（用語の意味や概念など）を日本語で整理してください。
+              
+              Title：${title}
+              Overview：${overview}
+              Query_hint: ${query_hint}
+        explorer:
+          agent: fetchAgent
+          console:
+            before: explorer start
+          inputs:
+            # google検索を使用して情報収集するユーティティエージェント
+            url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/explorer
+            method: POST
+            body:
+              user_input: :explorerPromptBuilder
+        explorer_result_summary:
+          agent: stringTemplateAgent
+          inputs:
+            title: :row.title
+            overview: :row.overview
+            query_hint: :row.query_hint
+            text: :explorer.result
+          console:
+            before: explorer_result_summary start 
+          params:
+            template: |-
+              # Subject：
+              ${title}
 
-        # Title：${title}
-        ## Overview：
-        ${overview_0}
-        ## Reference_Information:
-        ${reference_Information_0}
-  
-        # Title：${title}
-        ## Overview：
-        ${overview_1}
-        ## Reference_Information:
-        ${reference_Information_1}
-  
-  generator:
-    agent: openAIAgent
+              # Overview：
+              ${overview}
+
+              # keyword:
+              ${query_hint}
+
+              # Reference_Information:
+              ${text}
+          isResult: true
+  explorer_mapper_output:
+    agent: arrayJoinAgent
+    console:
+      before: explorer_mapper_output start
     params:
-      model: gpt-4.1
+      separator: \n---\n
+    inputs:
+      array: :explorer_mapper.explorer_result_summary
+
+  # 4. Generatorがアウトラインと情報をもとに台本を生成
+  generatorPromptBuilder:
+    agent: stringTemplateAgent
+    inputs:
+      explorer_result: :explorer_mapper_output.text
+      source: :source.text
+      target: :common_param.target
+    console:
+      before: generatorPromptBuilder start
+      after: true
+    params:
+      template: |-
+        あなたは、複数の情報源からのデータを統合してポッドキャスト台本を作成するツールです。
+        以下の入力情報と指示制約条件に基づいて、ユーザーから指定されたキーワードに関する一貫性のある台本テキストのみを出力してください。
+        なお、AI(TTS)により音声化することを想定した改行としてください。
+        また、返却結果をそのままmp3ファイルに変換するので台本テキストのみとしてください。
+
+        # 0. ユーザーからのキーワード
+        ${source}
+
+        # 1. 入力情報ソース
+        ${explorer_result}
+
+        # 2. ポッドキャストパラメータ
+        * **tone:** 深掘り討論
+        * **volume:** 1500~2500文字
+
+        # 3. 出力指示
+        **ターゲットユーザー:** ${target}
+        **台本構成:** 抽出・統合した情報に基づき、導入（トピックと情報源の概要説明）、本編（キーポイントの議論・展開）、結論（まとめ、考察）を含む一貫性のある台本を作成します。
+        
+        # 4. 制約条件
+        - 日本語で出力すること
+        - 3000文字を超えないこと
+
+        # 生成開始
+
+  generator:
+    agent: geminiAgent
+    params:
+      model: gemini-2.5-flash-preview-04-17
     console:
       before: generator start 
-      #after: true
     inputs:
-      prompt: :explorerResult
+      prompt: :generatorPromptBuilder
+
+  # 5. Actionが台本を音声化
+  actionPromptBuilder:
+    agent: stringTemplateAgent
+    inputs:
+      script: :generator.text
+    console:
+      before: actionPromptBuilder start 
+    params:
+      template: |-
+        # 指示書
+        下記台本を元にポッドキャストをmp3フォーマットで生成してGoogle Driveにアップし、ポッドキャストの台本とリンクをメール送信してください。
+        全てのタスクが完了したら処理を終了してください。
+
+        # 台本
+        ${script}
+
+  action:
+    agent: fetchAgent
+    console:
+      before: action start
+      after: true
+    inputs:
+      url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/action
+      method: POST
+      body:
+        user_input: :actionPromptBuilder
+        model_name: gemini-2.5-flash-preview-04-17
 
   output:
     agent: copyAgent
     console:
-      before: output start
-      #after: true
+      before: output start 
+    params:
+      namedKey: text
     inputs:
-      result: :generator.text
+      text: :action.text
     isResult: true

@@ -10,6 +10,15 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+```
+# mac
+brew install ffmpeg
+
+# linux
+sudo apt update
+sudo apt install ffmpeg
+```
+
 ### .env
 ```
 OPENAI_API_KEY=<OPENAI_API_KEY>
@@ -93,4 +102,10 @@ flowchart TD
  podcast_info(podcast_info) -- research_summary --> podcast_info_output
  podcast_info_output(podcast_info_output) -- text --> explorerResult
  explorerResult(explorerResult) --> generator
+```
+
+# アーキテクチャ
+```mermaid
+flowchart TB
+  node_1["new_node"]
 ```

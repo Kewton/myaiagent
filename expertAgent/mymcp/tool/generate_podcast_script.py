@@ -1,7 +1,9 @@
 from mymcp.tool.tts_and_upload_drive import tts_and_upload_drive
 from mymcp.utils.generate_subject_from_text import generate_subject_from_text
 from mymcp.utils.execllm import execLlmApi
+from core.logger import getlogger
 
+logger = getlogger()
 
 def generate_podcast_mp3_and_upload(topic_details: str, model_name: str = "gpt-4o-mini", subject_max_length: int = 25) -> str:
     """
@@ -16,6 +18,7 @@ def generate_podcast_mp3_and_upload(topic_details: str, model_name: str = "gpt-4
     Returns:
         str: Google Driveへのアップロード結果を示すメッセージまたはファイルURL。
     """
+    logger.info("generate_podcast_mp3_and_uploadを実行します")
     print(f"Generating script for MP3 with model: {model_name}") # デバッグ用
     # 1. 台本生成
     script = generate_podcast_script(model_name=model_name, input_info=topic_details)

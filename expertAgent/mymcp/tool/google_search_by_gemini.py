@@ -6,9 +6,8 @@ from pydantic import BaseModel, Field
 from mymcp.utils.html2markdown import getMarkdown
 from core.config import settings
 from mymcp.utils.extract_knowledge_from_text import extract_knowledge_from_text
-from core.logger import getlogger
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
+from core.logger import getlogger
 
 logger = getlogger()
 

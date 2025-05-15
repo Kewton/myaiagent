@@ -12,6 +12,9 @@ from core.config import settings
 # Make the graph with MCP context
 @asynccontextmanager
 async def make_graph(_mcpmodule: str = "mymcp.stdioall", _graphname: str = "Tool Agent", _model: str = settings.GRAPH_AGENT_MODEL):
+    if _model is None:
+        _model = settings.GRAPH_AGENT_MODEL
+        
     if isChatGptAPI(_model) or isChatGPT_o(_model):
         model = ChatOpenAI(model=_model)
     elif isGemini(_model):

@@ -1,3 +1,31 @@
+# expertAgent プロジェクト概要
+
+本ディレクトリは、LangGraphで開発したユーティリティAIエージェント群、MCPサーバー、及びそれらをAPIとして公開するFastAPIサーバーで構成されています。
+
+## ディレクトリ構成
+
+- `aiagent/`
+  - LangGraphベースのAIエージェント本体
+  - `langgraph/`
+    - `common.py`：LangGraphエージェント共通処理
+    - `util.py`：モデル判定等のユーティリティ
+    - `sampleagent/`：サンプルエージェント
+    - `utilityaiagents/`：ユーティリティ系エージェント（例: explorer, jsonOutput）
+- `app/`
+  - FastAPIアプリケーション
+  - `main.py`：FastAPIエントリポイント
+  - `api/v1/agent_endpoints.py`：エージェントAPIエンドポイント
+  - `schemas/`：リクエスト・レスポンス用Pydanticモデル
+  - `core/`：設定・ロガー
+- `mymcp/`
+  - MCPサーバー・ツール群
+  - `stdioall.py`/`stdio_explorer.py`：MCPサーバー実装
+  - `tool/`/`specializedtool/`/`googleapis/`：各種ツール
+- `requirements.txt`：必要パッケージ
+- `Dockerfile`：コンテナ化用
+
+---
+
 # コンテナ化
 ```bash
 cd aiagentapi

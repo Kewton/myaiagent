@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from aiagent.langgraph.sampleagent.graphagent import ainvoke_graphagent
 from aiagent.langgraph.utilityaiagents.jsonOutput_agent import jsonOutputagent
 from aiagent.langgraph.utilityaiagents.explorer_agent import exploreragent
+from aiagent.langgraph.utilityaiagents.action_agent import actionagent
 from app.schemas.standardAiAgent import ExpertAiAgentRequest, ExpertAiAgentResponse, ExpertAiAgentResponseJson
 from datetime import datetime
 
@@ -55,7 +56,7 @@ async def myaiagents(request: ExpertAiAgentRequest, agent_name: str):
 
         if "jsonoutput" in agent_name:
             print(f"request.user_input:{_input}")
-            parsed_json = await jsonOutputagent(_input)
+            parsed_json = await jsonOutputagent(_input, request.model_name)
             _response = {
                 "result": parsed_json,
                 "type": "jsonOutput"
@@ -63,10 +64,18 @@ async def myaiagents(request: ExpertAiAgentRequest, agent_name: str):
             return ExpertAiAgentResponseJson(**_response)
         elif "explorer" in agent_name:
             print(f"request.user_input:{_input}")
-            result = await exploreragent(_input)
+            result = await exploreragent(_input, request.model_name)
             _response = {
                 "result": result,
                 "type": "explorer"
+            }
+            return ExpertAiAgentResponse(**_response)
+        elif "action" in agent_name:
+            print(f"request.user_input:{_input}")
+            result = await actionagent(_input, request.model_name)
+            _response = {
+                "result": result,
+                "type": "action"
             }
             return ExpertAiAgentResponse(**_response)
         return {"message": "No matching agent found."}
