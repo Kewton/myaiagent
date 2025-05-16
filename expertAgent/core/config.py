@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     GOOGLE_APIS_TOKEN_PATH: str = Field(default="GOOGLE_APIS_TOKEN_PATH", env="GOOGLE_APIS_TOKEN_PATH")
     GOOGLE_APIS_CREDENTIALS_PATH: str = Field(default="GOOGLE_APIS_CREDENTIALS_PATH", env="GOOGLE_APIS_CREDENTIALS_PATH")
     PODCAST_SCRIPT_DEFAULT_MODEL: str = Field(default="gpt-4o-mini", env="PODCAST_SCRIPT_DEFAULT_MODEL")
+    MCP_DEFAULT_MODEL: str = Field(default="gemini-2.5-flash-preview-04-17", env="MCP_DEFAULT_MODEL")
     MAIL_TO: str = Field(default="MAIL_TO", env="MAIL_TO")
     SPREADSHEET_ID: str = Field(default="SPREADSHEET_ID", env="SPREADSHEET_ID")
     OLLAMA_URL: str = Field(default="http://localhost:11434", env="OLLAMA_URL")
