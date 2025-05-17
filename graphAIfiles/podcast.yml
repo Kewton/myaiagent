@@ -52,6 +52,7 @@ nodes:
       method: POST
       body:
         user_input: :plannerPromptBuilder
+        model_name: qwen3:235b-a22b-q4_K_M
         
   # 3. Explorerが章毎に必要な情報を収集 ＊並列処理
   explorer_mapper:
@@ -121,6 +122,7 @@ nodes:
             before: explorer_result_summary start 
           params:
             template: |-
+
               ### Subject：
               ${title}
 
