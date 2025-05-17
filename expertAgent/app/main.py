@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.api.v1 import agent_endpoints
+from app.api.v1 import utility_endpoints
 
 app = FastAPI(
     title="My API",
@@ -13,3 +14,4 @@ app = FastAPI(
 )
 
 app.include_router(agent_endpoints.router, prefix="/v1")
+app.include_router(utility_endpoints.router, prefix="/v1")

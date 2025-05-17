@@ -15,12 +15,14 @@ class StandardAiAgentResponse(BaseModel):
 
 class ExpertAiAgentRequest(BaseModel):
     user_input: str
+    system_imput: str | None = None
     model_name: str | None = None
 
 
 class ExpertAiAgentResponse(BaseModel):
     # result フィールドを ChatMessage モデルのリストとして定義
     result: str
+    text: str | None = None
     type: str | None = None
     chathistory: List[ChatMessage] | None = None
 

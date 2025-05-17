@@ -29,7 +29,7 @@ nodes:
         {
           "outline": [
               {
-                "title": "...",
+                "title": "...", // 導入・本編・結論のいずれかが分かるように明記するとともに、具体的なキーワードを考えること。例）【導入】LLM技術のトレンドとAIエージェントの動向
                 "overview": "...",
                 "query_hint": ["...", "..."]
               },
@@ -75,11 +75,30 @@ nodes:
           params:
             template: |-
               あなたは優れた情報収集者です。
-              以下のキーワードをもとに広く情報を収集し、あなたの知見と合わせてポッドキャストの台本の作成に必要な情報（用語の意味や概念など）を日本語で整理してください。
+              以下の入力をもとにgoogle検索より情報を収集し、あなたの知見と合わせてポッドキャストの台本の作成に必要な情報（用語の意味や概念など）を日本語で整理してください。
+              出力は RESPONSE_FORMAT に従ってください。
+
+              入力情報:
+              # Title
+              ${title}
               
-              Title：${title}
-              Overview：${overview}
-              Query_hint: ${query_hint}
+              # Overview
+              ${overview}
+              
+              # Query_hint
+              ${query_hint}
+
+              RESPONSE_FORMAT:
+              ##### 用語の意味や概念
+              // ここに用語の意味や概念を記載してください
+              
+              ##### 一般的な見解
+              // 研究結果など客観的な事実を元にした見解を記載してください
+
+              ##### あなた独自の見解
+              // ここにあなたの知見も含めた独自の見解を記載してください
+
+              /no_think
         explorer:
           agent: fetchAgent
           console:
@@ -90,6 +109,7 @@ nodes:
             method: POST
             body:
               user_input: :explorerPromptBuilder
+              model_name: qwen3:30b-a3b-q4_K_M
         explorer_result_summary:
           agent: stringTemplateAgent
           inputs:
@@ -101,16 +121,16 @@ nodes:
             before: explorer_result_summary start 
           params:
             template: |-
-              # Subject：
+              ### Subject：
               ${title}
 
-              # Overview：
+              #### Overview：
               ${overview}
 
-              # keyword:
+              #### keyword:
               ${query_hint}
 
-              # Reference_Information:
+              #### Reference_Information:
               ${text}
           isResult: true
   explorer_mapper_output:
@@ -134,67 +154,67 @@ nodes:
       after: true
     params:
       template: |-
+        # 指示書
         あなたは、複数の情報源からのデータを統合してポッドキャスト台本を作成するツールです。
-        以下の入力情報と指示制約条件に基づいて、ユーザーから指定されたキーワードに関する一貫性のある台本テキストのみを出力してください。
-        なお、AI(TTS)により音声化することを想定した改行としてください。
-        また、返却結果をそのままmp3ファイルに変換するので台本テキストのみとしてください。
+        以下のポッドキャストパラメータと制約条件に従い入力情報とに基づいて、ユーザーから指定されたキーワードに関する一貫性のある台本テキストのみを出力してください。
 
-        # 0. ユーザーからのキーワード
+        ## 出力指示詳細
+        - ターゲットユーザーは「${target}」とする
+        - 全体のアウトラインと抽出・統合した情報に基づき、導入（トピックと情報源の概要説明）、本編（キーポイントの議論・展開）、結論（まとめ、考察）を含む一貫性のある台本を作成してください
+        - 本編ではしっかりと掘り下げた議論を行い、結論では考察を行うこと
+
+        # ポッドキャストパラメータ
+        * **tone:** 深掘り討論
+        * **volume:** 日本語で1500~2500文字（6000バイト程度）
+        
+        # 制約条件
+        - 日本語で出力すること
+        - AI(TTS)により音声化することを想定した改行とすること
+        - 返却結果をそのままmp3ファイルに変換するので台本テキストのみとすること
+        - 「はい、承知いたしました〜」は出力せず、ポッドキャストの台本のみを出力すること
+          - NG例：はい、承知いたしました〜・・・。\n\n---\n\n皆さん、こんにちは。・・
+          - OK例：皆さん、こんにちは。・・・
+
+        # 入力情報
+        ## ユーザーからのキーワード
         ${source}
 
-        # 1. 入力情報ソース
+        ## 全体のアウトラインと抽出・統合した情報
         ${explorer_result}
-
-        # 2. ポッドキャストパラメータ
-        * **tone:** 深掘り討論
-        * **volume:** 1500~2500文字
-
-        # 3. 出力指示
-        **ターゲットユーザー:** ${target}
-        **台本構成:** 抽出・統合した情報に基づき、導入（トピックと情報源の概要説明）、本編（キーポイントの議論・展開）、結論（まとめ、考察）を含む一貫性のある台本を作成します。
-        
-        # 4. 制約条件
-        - 日本語で出力すること
-        - 3000文字を超えないこと
 
         # 生成開始
 
   generator:
-    agent: geminiAgent
-    params:
-      model: gemini-2.5-flash-preview-04-17
+    # agent: geminiAgent
+    # params:
+    #   model: gemini-2.5-flash-preview-04-17
+    # console:
+    #   before: generator start 
+    #   after: true
+    # inputs:
+    #   prompt: :generatorPromptBuilder
+    agent: fetchAgent
     console:
-      before: generator start 
+      before: generator start
+      after: true
     inputs:
-      prompt: :generatorPromptBuilder
+      url: http://127.0.0.1:8000/aiagent-api/v1/mylllm
+      method: POST
+      body:
+        user_input: :generatorPromptBuilder
+        model_name: qwen3:235b-a22b-q4_K_M
 
   # 5. Actionが台本を音声化
-  actionPromptBuilder:
-    agent: stringTemplateAgent
-    inputs:
-      script: :generator.text
-    console:
-      before: actionPromptBuilder start 
-    params:
-      template: |-
-        # 指示書
-        下記台本を元にポッドキャストをmp3フォーマットで生成してGoogle Driveにアップし、ポッドキャストの台本とリンクをメール送信してください。
-        全てのタスクが完了したら処理を終了してください。
-
-        # 台本
-        ${script}
-
   action:
     agent: fetchAgent
     console:
       before: action start
       after: true
     inputs:
-      url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/action
+      url: http://127.0.0.1:8000/aiagent-api/v1/utility/tts_and_upload_drive
       method: POST
       body:
-        user_input: :actionPromptBuilder
-        model_name: gemini-2.5-flash-preview-04-17
+        user_input: :generator.text
 
   output:
     agent: copyAgent
@@ -203,5 +223,5 @@ nodes:
     params:
       namedKey: text
     inputs:
-      text: :action.text
+      text: :action.result
     isResult: true

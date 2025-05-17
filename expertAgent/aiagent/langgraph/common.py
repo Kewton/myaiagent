@@ -7,7 +7,18 @@ from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from core.config import settings
+from contextlib import asynccontextmanager
+from typing import TypedDict, Annotated, List, Union, Sequence
+import operator
+import inspect
+from langchain_core.agents import AgentAction, AgentFinish
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_mcp_adapters.client import MultiServerMCPClient
 
+# from langgraph.prebuilt import create_react_agent # これを使わずに構築
+from langgraph.graph import StateGraph, END
+from langgraph.prebuilt import ToolNode
 
 # Make the graph with MCP context
 @asynccontextmanager
@@ -46,4 +57,57 @@ async def make_graph(_mcpmodule: str = "mymcp.stdioall", _graphname: str = "Tool
         # graph = graph_builder.compile()
         graph.name = _graphname
 
+        yield graph
+
+
+class ReactAgentState(TypedDict):
+    messages: Annotated[Sequence[BaseMessage], operator.add]
+
+
+@asynccontextmanager
+async def make_utility_graph(
+    _mcpmodule: str = "mymcp.stdioall",
+    _graphname: str = "Tool Agent",
+    _model: str = settings.GRAPH_AGENT_MODEL,
+    _max_iterations: int | None = None,          # ★ 追加
+):
+    # モデル選択は現状維持
+    if _model is None:
+        _model = settings.GRAPH_AGENT_MODEL
+
+    if isChatGptAPI(_model) or isChatGPT_o(_model):
+        model = ChatOpenAI(model=_model)
+    elif isGemini(_model):
+        model = ChatGoogleGenerativeAI(model=_model)
+    elif isClaude(_model):
+        model = ChatAnthropic(model=_model)
+    else:
+        model = ChatOllama(model=_model, base_url=settings.OLLAMA_URL)
+
+    # MCP クライアント
+    mcp_client = MultiServerMCPClient(
+        {
+            "my-mcp-tool": {
+                "command": "python",
+                "args": ["-m", _mcpmodule],
+                "transport": "stdio",
+            }
+        }
+    )
+
+    async with mcp_client:
+        mcp_tools = mcp_client.get_tools()
+        print(f"Available tools: {[tool.name for tool in mcp_tools]}")
+
+        # ReAct エージェントを生成
+        graph = create_react_agent(model, mcp_tools)
+
+        # 最大試行回数を recursion_limit に反映
+        if _max_iterations is not None:
+            # LangGraph では「1 思考 + 1 ツール実行」を 2 ステップと数えるので、
+            # 推奨式  recursion_limit = 2 * max_iterations + 1
+            recursion_limit = 2 * _max_iterations + 1
+            graph = graph.with_config(recursion_limit=recursion_limit, max_concurrency=2)
+
+        graph.name = _graphname
         yield graph

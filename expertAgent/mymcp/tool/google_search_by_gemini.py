@@ -14,9 +14,9 @@ logger = getlogger()
 
 class GoogleSearchResult(BaseModel):
     text: str
-    result: List[dict] = Field(..., description="Gemini APIから返されたテキストと参照されたURIから取得したHTMLをマークダウンファイル化したもの")
-    search_entry_point: List[str] = Field(..., description="検索結果ページへのリンクのリスト")
-    uris: List[str] = Field(..., description="参照されたURIのリスト")
+    # result: List[dict] = Field(..., description="Gemini APIから返されたテキストと参照されたURIから取得したHTMLをマークダウンファイル化したもの")
+    # search_entry_point: List[str] = Field(..., description="検索結果ページへのリンクのリスト")
+    # uris: List[str] = Field(..., description="参照されたURIのリスト")
 
 
 # 各URIに対する処理をまとめた関数
@@ -82,9 +82,7 @@ def googleSearchAgent(_input: str) -> str:
     Examples:
         >>> googleSearchAgent("東京スカイツリーの高さ")
         GoogleSearchResult(
-            result="東京スカイツリーの高さは634mです。",
-            search_entry_point=["https://www.tokyo-skytree.jp/"],
-            uris=["https://ja.wikipedia.org/wiki/東京スカイツリー"]
+            text="東京スカイツリーの高さは634mです。"
         )
     """
     logger.info("Google Searchを実行します")
@@ -147,10 +145,10 @@ def googleSearchAgent(_input: str) -> str:
     # logger.info(f"Google SearchのURI: {uris}")
     # pydanticモデルで結果を生成
     result_model = GoogleSearchResult(
-        text=text,
-        result=markdowns,
-        search_entry_point=links,
-        uris=uris
+        text=text
+        # result=markdowns,
+        # search_entry_point=links,
+        # uris=uris
     )
 
     # print(result_model.model_dump_json())

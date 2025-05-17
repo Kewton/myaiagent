@@ -33,9 +33,7 @@ async def google_search_tool(input_query: str) -> str:
     Examples:
         >>> google_search_tool("東京スカイツリーの高さ")
         GoogleSearchResult(
-            result="東京スカイツリーの高さは634mです。",
-            search_entry_point=["https://www.tokyo-skytree.jp/"],
-            uris=["https://ja.wikipedia.org/wiki/東京スカイツリー"]
+            result="東京スカイツリーの高さは634mです。"
         )
     """
     return googleSearchAgent(input_query)

@@ -4,7 +4,28 @@ from aiagent.langgraph.utilityaiagents.jsonOutput_agent import jsonOutputagent
 from aiagent.langgraph.utilityaiagents.explorer_agent import exploreragent
 from aiagent.langgraph.utilityaiagents.action_agent import actionagent
 from app.schemas.standardAiAgent import ExpertAiAgentRequest, ExpertAiAgentResponse, ExpertAiAgentResponseJson
+from mymcp.utils.chatollama import chatOllama
 from datetime import datetime
+import re
+
+
+def remove_think_tags(text: str) -> str:
+    """
+    文字列から <think>...</think> タグとその内容を削除します。
+
+    Args:
+        text:処理対象の文字列。
+
+    Returns:
+        <think> タグが削除された文字列。
+    """
+    # <think> から </think> までを非貪欲マッチで捉え、
+    # re.DOTALL フラグによりタグ内に改行が含まれていてもマッチさせます。
+    pattern = r"<think>.*?</think>"
+    cleaned_text = re.sub(pattern, "", text, flags=re.DOTALL)
+    print(f"cleaned_text:{cleaned_text}")
+    return cleaned_text
+
 
 router = APIRouter()
 
@@ -14,6 +35,33 @@ router = APIRouter()
             description="Hello Worldです。疎通確認に使用してください。")
 def home_hello_world():
     return {"message": "Hello World"}
+
+
+@router.post("/mylllm",
+            summary="",
+            description="")
+def exec_myllm(request: ExpertAiAgentRequest):
+    _messages = []
+    if request.system_imput is not None:
+        _messages.append(
+            {"role": "system", "content": request.system_imput}
+        )
+    _messages.append(
+        {"role": "user", "content": request.user_input}
+    )
+
+    print(f"request.user_input:{_messages}")
+
+    result = chatOllama(_messages, request.model_name)
+    _response = {
+        "result": "ok",
+        "text": remove_think_tags(result),
+        "type": "exec_myllm"
+    }
+
+    print(f"result:{_response}")
+
+    return ExpertAiAgentResponse(**_response)
 
 
 @router.post("/aiagent/sample",
@@ -66,7 +114,7 @@ async def myaiagents(request: ExpertAiAgentRequest, agent_name: str):
             print(f"request.user_input:{_input}")
             result = await exploreragent(_input, request.model_name)
             _response = {
-                "result": result,
+                "result": remove_think_tags(result),
                 "type": "explorer"
             }
             return ExpertAiAgentResponse(**_response)
@@ -74,7 +122,7 @@ async def myaiagents(request: ExpertAiAgentRequest, agent_name: str):
             print(f"request.user_input:{_input}")
             result = await actionagent(_input, request.model_name)
             _response = {
-                "result": result,
+                "result": remove_think_tags(result),
                 "type": "action"
             }
             return ExpertAiAgentResponse(**_response)

@@ -76,7 +76,7 @@ def generate_subject_from_text(text_body: str, max_length: int = 20) -> str:
 
         # 前後に不要な引用符などが付いていたら削除
         # generated_subject = generated_subject.strip('"`\'')
-        generated_subject = execLlmApi(settings.MCP_DEFAULT_MODEL, _messages)
+        generated_subject = execLlmApi(settings.OLLAMA_DEF_SMALL_MODEL, _messages)
 
         # 必要に応じてさらに後処理 (例: 長すぎる場合の切り詰め)
         if len(generated_subject) > max_length * 1.5: # 多少のオーバーは許容
