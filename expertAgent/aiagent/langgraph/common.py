@@ -19,6 +19,26 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 # from langgraph.prebuilt import create_react_agent # これを使わずに構築
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
+import re
+
+
+def remove_think_tags(text: str) -> str:
+    """
+    文字列から <think>...</think> タグとその内容を削除します。
+
+    Args:
+        text:処理対象の文字列。
+
+    Returns:
+        <think> タグが削除された文字列。
+    """
+    # <think> から </think> までを非貪欲マッチで捉え、
+    # re.DOTALL フラグによりタグ内に改行が含まれていてもマッチさせます。
+    pattern = r"<think>.*?</think>"
+    cleaned_text = re.sub(pattern, "", text, flags=re.DOTALL)
+    print(f"cleaned_text:{cleaned_text}")
+    return cleaned_text
+
 
 # Make the graph with MCP context
 @asynccontextmanager

@@ -1,15 +1,35 @@
 import json
 import re
+from aiagent.langgraph.util import isChatGptAPI, isGemini, isChatGPT_o, isClaude
 from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
+from langchain_anthropic import ChatAnthropic
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.output_parsers import JsonOutputParser
+from core.config import settings
+from aiagent.langgraph.common import remove_think_tags
 
 
 async def jsonOutputagent(query: str, _model: str = "gpt-4o-mini") -> dict:
     if _model is None:
         _model = "gpt-4o-mini"
         
-    llm_openai = ChatOpenAI(model=_model, temperature=0.3)
+    if isChatGptAPI(_model) or isChatGPT_o(_model):
+        llm_openai = ChatOpenAI(model=_model, temperature=0.3)
+    elif isGemini(_model):
+        # gemini-2.5-flash-preview-04-17
+        llm_openai = ChatGoogleGenerativeAI(model=_model)
+    elif isClaude(_model):
+        llm_openai = ChatAnthropic(model=_model)
+    else:
+        llm_openai = ChatOllama(
+            model=_model,
+            base_url=settings.OLLAMA_URL,
+        )
+
+    # llm_openai = ChatOpenAI(model=_model, temperature=0.3)
     outline_json = (await llm_openai.ainvoke(query)).content
+    outline_json = remove_think_tags(outline_json)
     print("~~~~ outline_json [start]~~~~")
     print(outline_json)
     print("~~~~ outline_json [end]~~~~")
