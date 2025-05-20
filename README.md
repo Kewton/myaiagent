@@ -24,14 +24,19 @@ sudo apt install ffmpeg
 OPENAI_API_KEY=<OPENAI_API_KEY>
 GOOGLE_API_KEY=<GOOGLE_API_KEY>
 ANTHROPIC_API_KEY=<ANTHROPIC_API_KEY>
-LOG_DIR=./log
-LOG_LEVEL=INFO
-GRAPH_AGENT_MODEL=gpt-4o-mini
 GOOGLE_APIS_TOKEN_PATH=./token/token.json
 GOOGLE_APIS_CREDENTIALS_PATH=./token/credentials.json
-PODCAST_SCRIPT_DEFAULT_MODEL=gpt-4o-mini
 MAIL_TO=<MAIL_TO>
+LOG_DIR=./log
+LOG_LEVEL=INFO
+PODCAST_SCRIPT_DEFAULT_MODEL=gpt-4o-mini
 SPREADSHEET_ID=<SPREADSHEET_ID>
+GRAPH_AGENT_MODEL=gpt-4o-mini
+OLLAMA_URL=http://localhost:11434
+OLLAMA_DEF_SMALL_MODEL=gemma3:27b-it-q8_0
+EXTRACT_KNOWLEDGE_MODEL=gemma3:27b-it-q8_0
+SPREADSHEET_ID=<SPREADSHEET_ID>
+MLX_LLM_SERVER_URL=http://localhost:8080
 ```
 
 ### exec
@@ -108,4 +113,44 @@ flowchart TD
 ```mermaid
 flowchart TB
   node_1["new_node"]
+```
+
+```bash
+# ステップ1: Ollama関連プロセスを停止
+pkill -f "/Applications/Ollama-2.app/Contents/Resources/ollama"
+
+# ステップ2 (任意): プロセス終了確認 (数秒待ってから実行)
+# ps aux | grep '[O]llama'
+
+# ステップ3: 新しい設定でOllamaサーバーを起動
+OLLAMA_NUM_PARALLEL=4 OLLAMA_MAX_LOADED_MODELS=4 OLLAMA_MAX_QUEUE=2048 ollama serve
+```
+
+
+
+
+## mlxtest
+### setup
+```bash
+cd mlxtest
+python3 -m venv venv
+source venv/bin/activate  # Windowsの場合: venv\Scripts\activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+
+```bash
+mlx_lm.generate --model mlx-community/gemma-3-12b-it-8bit --prompt "あなたは誰？"
+```
+
+### exec
+```bash
+uvicorn server:app --host 0.0.0.0 --port 8080 --loop uvloop --workers 4
+```
+
+```bash
+curl -X POST http://localhost:8080/v1/completions \
+     -H "Content-Type: application/json" \
+     -d '{"prompt":"東京から大阪まで何キロ？"}'
 ```

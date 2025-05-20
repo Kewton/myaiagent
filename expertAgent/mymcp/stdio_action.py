@@ -7,7 +7,6 @@ from mcp.server.fastmcp import FastMCP
 from core.config import settings
 
 
-PODCAST_SCRIPT_DEFAULT_MODEL = settings.PODCAST_SCRIPT_DEFAULT_MODEL
 mcp = FastMCP("myMcp")
 
 
