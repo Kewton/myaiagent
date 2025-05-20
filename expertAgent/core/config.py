@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     OLLAMA_DEF_SMALL_MODEL: str = Field(default="gemma3:27b-it-qat", env="OLLAMA_DEF_SMALL_MODEL")
     OLLAMA_DEF_LARGE_MODEL: str = Field(default="gemma3:27b-it-qat", env="OLLAMA_DEF_LARGE_MODEL")
     EXTRACT_KNOWLEDGE_MODEL: str = Field(default="gemma3:27b-it-qat", env="EXTRACT_KNOWLEDGE_MODEL")
+    SERPER_API_KEY: str = Field(default="SERPER_API_KEY", env="SERPER_API_KEY")
+    MLX_LLM_SERVER_URL: str = Field(default="http://localhost:8080", env="MLX_LLM_SERVER_URL")
 
 
 # インスタンス生成

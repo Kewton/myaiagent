@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from mymcp.tool.tts_and_upload_drive import tts_and_upload_drive
 from mymcp.utils.generate_subject_from_text import generate_subject_from_text
+from mymcp.tool.google_search_by_serper import google_search_by_serper_list
 from mymcp.googleapis.gmail.send import send_email
 from core.config import settings
-from app.schemas.utilitySchemas import UtilityRequest, UtilityResponse
+from app.schemas.utilitySchemas import UtilityRequest, UtilityResponse, SearchUtilityRequest, SearchUtilityResponse
 
 
 router = APIRouter()
@@ -48,6 +49,20 @@ async def tts_and_upload_drive_api(request: UtilityRequest):
         send_email(settings.MAIL_TO, title, body)
 
         return UtilityResponse(result=result)
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        raise HTTPException(status_code=500, detail="An internal server error occurred in the utility.")
+
+
+# search_tool
+@router.post("/utility/google_search",
+             summary="",
+             description="")
+async def google_search_by_serper_api(request: SearchUtilityRequest):
+    print(f"request: {request}")
+    try:
+        result = await google_search_by_serper_list(request.queries)
+        return SearchUtilityResponse(result=result)
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         raise HTTPException(status_code=500, detail="An internal server error occurred in the utility.")

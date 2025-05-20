@@ -3,11 +3,11 @@ nodes:
   # 1. キーワードを入力
   source:
     value:
-      text: 最新のLLM技術トレンドとこれらの地球温暖化への影響
+      text: 2025年5月4日に開催された井上尚弥の試合結果
   
   common_param:
     value:
-      target: 日本の熟練ITエンジニアかつ子育て世代、知的好奇心が豊富
+      target: 39歳、男性
 
   # 2. Plnnerが章に分割しアウトラインを生成
   plannerPromptBuilder:
@@ -17,7 +17,7 @@ nodes:
       target: :common_param.target
     console:
       before: plannerPrompt start 
-      after: true
+      #after: true
     params:
       template: |-
         
@@ -27,6 +27,7 @@ nodes:
         
         ## 出力指示詳細
         - ターゲットユーザーは「${target}」とする
+        - キーワードに関する最新情報をgoogle検索を活用して収集しアウトライン出力の参考にすること
         - 導入（トピックと情報源の概要説明）、本編（キーポイントの議論・展開）、結論（まとめ、考察）を含む一貫性のあるアウトラインとすること
         - overviewには各章の概要を記載すること
         - 本編は少なくとも２部以上の構成にし、あなたの知見をフルに活用して深掘りすること
@@ -35,6 +36,7 @@ nodes:
 
         # 制約条件
         - 日本語で出力すること
+        - query_hintは最大2つまでとすること
 
         # RESPONSE FORMAT:
         {
@@ -52,20 +54,22 @@ nodes:
           ]
         }
 
-        # キーワード:
+        # ユーザーからのキーワード:
         ${keywords}
 
   planner:
     agent: fetchAgent
     console:
       before: planner start
+      after: true
     inputs:
       # jsonフォーマットでの出力を行うユーティティエージェント
       url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/jsonoutput
       method: POST
       body:
         user_input: :plannerPromptBuilder
-        model_name: qwen3:235b-a22b-q4_K_M
+        # qwen3:235b-a22b-q4_K_M, qwen3:32b-fp16, qwen3:30b-a3b-q8_0, qwen3:30b-a3b-q4_K_M, #qwen3:32b-q8_0
+        model_name: qwen3:30b-a3b-q8_0
         
   # 3. Explorerが章毎に必要な情報を収集 ＊並列処理
   explorer_mapper:
@@ -78,38 +82,76 @@ nodes:
       compositeResult: true
     graph:
       nodes:
+        # query_hint:
+        #   agent: copyAgent
+        #   console:
+        #     before: query_hint copy start
+        #     after: true
+        #   inputs:
+        #     text: :row.query_hint
+
+        explorer_search:
+          agent: fetchAgent
+          console:
+            before: explorer_search start ${queries}
+            after: true
+          inputs:
+            # google検索を使用して情報収集するユーティティエージェント
+            url: http://127.0.0.1:8000/aiagent-api/v1/utility/google_search
+            method: POST
+            body:
+              queries: :row.query_hint
+
         explorerPromptBuilder:
           agent: stringTemplateAgent
           inputs:
             title: :row.title
             overview: :row.overview
             query_hint: :row.query_hint
+            google_search_result: :explorer_search.result
           console:
             before: explorerPromptBuilder start 
           params:
             template: |-
-              あなたは優れた情報収集者です。
-              以下の入力をもとにgoogle検索より情報を収集し、あなたの知見と合わせてポッドキャストの台本の作成に必要な情報（用語の意味や概念など）を日本語で整理してください。
-              出力は RESPONSE_FORMAT に従ってください。
 
-              入力情報:
-              # Title
+              # 指示書
+              あなたは優れた情報収集者です。
+              以下の制約条件に従い、入力情報のExplore_Resultをもとにあなたの知見と合わせてポッドキャストの台本の作成に必要な情報（用語の意味や概念など）を日本語で整理してください。
+              最後に、整理した情報と入力情報を元に、500~800文字程度で台本の初版を作成してください。
+              
+              # 制約条件
+              - 出力は RESPONSE_FORMAT に従うこと
+
+              # 入力情報:
+              ## Title
               ${title}
               
-              # Overview
+              ## Overview
               ${overview}
               
-              # Query_hint
+              ## Explore_Result
+              ### Queries
               ${query_hint}
 
-              RESPONSE_FORMAT:
+              ### google_search_result
+              ${google_search_result}
+
+              # RESPONSE_FORMAT:
               #### 用語の意味や概念
               // ここに用語の意味や概念を記載してください
+
+              #### 用語間の関係性
+              // ここに用語間の関係性を記載してください
               
               #### 一般的な見解
               // 研究結果など客観的な事実を元にした見解を記載してください
 
+              #### Fist Edition of the Script
+              // Title と Overview と google_search_result を元に深掘りを行い台本の初版を作成してください
+
+
               /no_think
+
         explorer:
           agent: fetchAgent
           console:
@@ -125,7 +167,7 @@ nodes:
           agent: stringTemplateAgent
           inputs:
             title: :row.title
-            overview: :row.overview
+            # overview: :row.overview
             query_hint: :row.query_hint
             text: :explorer.result
           console:
@@ -135,9 +177,6 @@ nodes:
 
               ### Subject：
               ${title}
-
-              #### Overview：
-              ${overview}
 
               #### keyword:
               ${query_hint}
@@ -172,7 +211,8 @@ nodes:
         ## 出力指示詳細
         - ターゲットユーザーは「${target}」とする
         - 全体のアウトラインと抽出・統合した情報に基づき、導入（トピックと情報源の概要説明）、本編（キーポイントの議論・展開）、結論（まとめ、考察）を含む一貫性のある台本を作成してください
-        - 本編ではしっかりと掘り下げた議論を行い、結論では考察を行うこと
+        - 本編では十分に掘り下げた議論を行うこと
+        - 結論では考察を行うこと
 
         # ポッドキャストパラメータ
         * **tone:** 深掘り討論
@@ -214,7 +254,8 @@ nodes:
       method: POST
       body:
         user_input: :generatorPromptBuilder
-        model_name: qwen3:235b-a22b-q4_K_M
+        # qwen3:235b-a22b-q4_K_M, qwen3:32b-fp16
+        model_name: qwen3:32b-q8_0
 
   # 5. Actionが台本を音声化
   action:

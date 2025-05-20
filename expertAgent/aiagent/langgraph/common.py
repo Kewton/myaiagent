@@ -8,17 +8,11 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from core.config import settings
 from contextlib import asynccontextmanager
-from typing import TypedDict, Annotated, List, Union, Sequence
+from typing import TypedDict, Annotated, Sequence
 import operator
-import inspect
-from langchain_core.agents import AgentAction, AgentFinish
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.messages import BaseMessage
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
-# from langgraph.prebuilt import create_react_agent # これを使わずに構築
-from langgraph.graph import StateGraph, END
-from langgraph.prebuilt import ToolNode
 import re
 
 

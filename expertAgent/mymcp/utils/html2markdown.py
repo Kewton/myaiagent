@@ -1,11 +1,12 @@
 import html2text
 from mymcp.googleapis.drive import get_or_create_folder, upload_file
-from bs4 import BeautifulSoup, NavigableString
+from bs4 import BeautifulSoup
 from mymcp.utils.file_operation import delete_file
 import re
 import requests
 import uuid
 from pathlib import Path
+import re
 
 
 def getMarkdown(url, isUpload=True):
@@ -14,13 +15,15 @@ def getMarkdown(url, isUpload=True):
             "state": "failed",
             "result": ""
         }
-        headers = {"User-Agent": "Mozilla/5.0"}
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
         response = requests.get(url, headers=headers, timeout=10)
 
         if response.status_code == 200:
             html_content = response.text
             # 関数を使ってHTMLをMarkdownに変換
-            markdown_content = html_to_markdown(html_content)
+            markdown_content = clean_markdown_text(html_to_markdown(html_content))
             result["state"] = "success"
             result["result"] = markdown_content
             
@@ -69,6 +72,35 @@ def convert_html_to_markdown(html_content):
     # HTMLをMarkdownに変換
     markdown_content = converter.handle(html_content)
     return markdown_content
+
+
+def clean_markdown_text(markdown: str) -> str:
+    """
+    Markdownテキストをクリーンアップする関数
+    """
+    # [](...) 形式のリンクを除去
+    markdown = re.sub(r'\[.*?\]\(.*?\)', '', markdown)
+    # 「メディア」や「[特集]」など特定の単語・パターンを除去
+    markdown = re.sub(r'メディア|特集', '', markdown)
+    # 文字化け（�など）や制御文字を除去
+    markdown = re.sub(r'[�\x00-\x1F\x7F-\x9F]', '', markdown)
+    # PDFやバイナリ断片らしきものを除去（例: "endstream endobj"や"xref"など）
+    markdown = re.sub(r'%PDF-[\d\.]+', '', markdown)
+    markdown = re.sub(r'\d+\s+\d+\s+obj.*?endobj', '', markdown, flags=re.DOTALL)
+    markdown = re.sub(r'xref.*?trailer.*?%%EOF', '', markdown, flags=re.DOTALL)
+    markdown = re.sub(r'endstream endobj.*?trailer.*?%%EOF', '', markdown, flags=re.DOTALL)
+    markdown = re.sub(r'trailer[\s\S]*?startxref[\s\S]*?%%EOF', '', markdown, flags=re.DOTALL)
+
+    # 文字化けパターン（日本語・英数字・記号以外の連続）を除去
+    markdown = re.sub(r'[^\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uFF00-\uFFEF\u0020-\u007E\n\r\t。、・「」（）【】『』《》〈〉［］｛｝！？：；…ー\-a-zA-Z0-9,\.\/\\@#\$%\^&\*\(\)_\+\=\|\[\]\{\}\'\"\<\>\~`]+', '', markdown)
+
+    # 空行や余分な空白を整理
+    markdown = re.sub(r'\n+', '\n', markdown)
+    markdown = markdown.strip()
+
+    print("clean end:")
+    
+    return markdown
 
 
 def html_to_markdown(html_content):

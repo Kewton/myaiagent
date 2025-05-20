@@ -9,3 +9,11 @@ class UtilityRequest(BaseModel):
 class UtilityResponse(BaseModel):
     # result フィールドを ChatMessage モデルのリストとして定義
     result: str
+
+
+class SearchUtilityRequest(BaseModel):
+    queries: List[str]
+
+
+class SearchUtilityResponse(BaseModel):
+    result: str
