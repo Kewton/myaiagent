@@ -10,8 +10,12 @@ from mlx_lm import load as load_model, generate as generate_once
 from mlx_lm.sample_utils import make_sampler
 
 
+load_dotenv()  # .envファイルを読み込む
+
+
 # --- 設定値 ---
 MODEL_DIR = os.environ.get("MODEL_DIR", "mlx-community/gemma-3-4b-it-qat-4bit")
+print(f"Loading model from {MODEL_DIR}...")
 GPU_SLOTS = int(os.environ.get("GPU_SLOTS", 5))
 BATCH_MAX_SIZE = int(os.environ.get("BATCH_MAX_SIZE", 5))
 BATCH_TIMEOUT_SECONDS = float(os.environ.get("BATCH_TIMEOUT_SECONDS", 1.5))
