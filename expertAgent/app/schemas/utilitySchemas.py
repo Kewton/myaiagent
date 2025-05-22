@@ -13,6 +13,7 @@ class UtilityResponse(BaseModel):
 
 class SearchUtilityRequest(BaseModel):
     queries: List[str]
+    num: int | None = None
 
 
 class SearchUtilityResponse(BaseModel):

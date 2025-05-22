@@ -3,7 +3,7 @@ import json
 from mymcp.utils.html2markdown import getMarkdown
 from mymcp.utils.chatollama import extract_knowledge_from_text
 import concurrent.futures
-from typing import List
+from typing import List, Union
 from pydantic import BaseModel, Field
 from mymcp.utils.html2markdown import getMarkdown
 from core.config import settings
@@ -14,10 +14,10 @@ logger = getlogger()
 
 class SerperSearchResult(BaseModel):
     text: str | None = Field(..., description="")
-    result: List[dict] = Field(..., description="")
+    result: List[Union[dict, str]] = Field(..., description="")
 
 
-async def google_search_by_serper_list(queries: List[str]) -> str:
+async def google_search_by_serper_list(queries: List[str], num: int = 3) -> str:
     """Google Searchを用いて情報を取得し、結果を返す。
 
     Serper APIを使用してGoogle Searchを実行し、
@@ -32,7 +32,6 @@ async def google_search_by_serper_list(queries: List[str]) -> str:
             - result (List[dict]): 検索結果から抽出したナレッジのリスト
     """
     logger.info("google_search_by_serperを実行します")
-    _num = 3
     _serperresults = []
     for _query in queries:
         conn = http.client.HTTPSConnection("google.serper.dev")
@@ -41,7 +40,7 @@ async def google_search_by_serper_list(queries: List[str]) -> str:
             "location": "Japan",
             "gl": "jp",
             "hl": "ja",
-            "num": _num
+            "num": num
         })
         headers = {
             'X-API-KEY': settings.SERPER_API_KEY,
@@ -56,7 +55,7 @@ async def google_search_by_serper_list(queries: List[str]) -> str:
 
     # 並列で実行して結果をリストで取得
     results = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=_num*2) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num*2) as executor:
         futures = [executor.submit(get_entry_summary, a) for a in _serperresults]
         results = [f.result() for f in concurrent.futures.as_completed(futures)]
 
@@ -68,7 +67,7 @@ async def google_search_by_serper_list(queries: List[str]) -> str:
     return result_model.model_dump_json()
 
 
-async def get_overview_by_google_serper(queries: List[str]) -> str:
+async def get_overview_by_google_serper(queries: List[str], num: int = 3) -> str:
     """Google Searchを用いて情報を取得し、結果を返す。
 
     Serper APIを使用してGoogle Searchを実行し、
@@ -91,7 +90,7 @@ async def get_overview_by_google_serper(queries: List[str]) -> str:
             "location": "Japan",
             "gl": "jp",
             "hl": "ja",
-            "num": 5
+            "num": num
         })
         headers = {
             'X-API-KEY': settings.SERPER_API_KEY,
@@ -104,14 +103,17 @@ async def get_overview_by_google_serper(queries: List[str]) -> str:
         for key in ["searchParameters", "images", "relatedSearches", "credits"]:
             jsondata.pop(key, None)
         
-        for a in jsondata:
-            _serperresults.append(a)
+        print(_query)
+        print(jsondata)
+        # for a in jsondata:
+        _serperresults.append(jsondata)
 
     result_model = SerperSearchResult(
         text="ok",
         result=_serperresults,
     )
 
+    print(f"result_model: {result_model}")
     return result_model.model_dump_json()
 
 
@@ -121,7 +123,18 @@ def get_entry_summary(_organic):
     link = _organic['link']
     md = getMarkdown(link, False)
     # print(md)
-    kl = extract_knowledge_from_text(md["result"], "mlx-community") # mlx-community
+    if isinstance(md, dict):
+        result_text = md.get("result", "")
+    else:
+        result_text = md
+    if result_text.startswith("JavaScript"):
+        print(f"'{title}' と '{link}' は 'JavaScript' から始まっています。")
+        print(f"md: {md}")
+        kl = "情報なし"
+    elif md["state"] == "success":
+        kl = extract_knowledge_from_text(md["result"], "mlx-community") # mlx-community, gemma3:4b
+    else:
+        kl = "情報取得失敗"
     return {
         "title": title,
         "link": link,
