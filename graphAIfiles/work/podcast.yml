@@ -3,11 +3,129 @@ nodes:
   # 1. キーワードを入力
   source:
     value:
-      text: 2025年5月4日に開催された井上尚弥の試合結果
+      text: 最新のLLM技術トレンドとAIエージェントの動向とこれらの地球温暖化への影響 #2025年5月4日に開催された井上尚弥の試合結果と今回の調子と今後の展望
   
   common_param:
     value:
       target: 39歳、男性
+
+  # 2. Plnnerが章に分割しアウトラインを生成
+  prePlannerPromptBuilder:
+    agent: stringTemplateAgent
+    inputs:
+      keywords: :source.text
+    console:
+      before: prePlannerPromptBuilder start 
+      #after: true
+    params:
+      template: |-
+        
+        # 指示書
+        あなたは優れたポッドキャストの編集者兼ライターです。
+        ユーザーからの入力を元にポッドキャストキャストの台本を作成するための情報収集を行います。
+        以下の制約条件に従いユーザーから入力に関する情報を広く収集するためのgoogle検索用のクエリを作成してください。
+        なお、クエリはシンプルかつ多くの視点で検索できるようにしてください。
+
+        # 制約条件
+        - 日本語で出力すること
+        - 出力は RESPONSE_FORMAT に従うこと。返却は JSON 形式で行い、コメントやマークダウンは含めないこと
+        - クエリは最低でも2つ出力し、最大5つまで出力すること
+
+        # RESPONSE FORMAT:
+        {
+          "querylist": [
+              "google検索用クエリ1",
+              "google検索用クエリ2",
+              ・・・
+          ]
+        }
+
+        # ユーザーからの入力:
+        ${keywords}
+
+  prePlanner:
+    agent: fetchAgent
+    console:
+      before: prePlanner start
+      after: true
+    inputs:
+      # jsonフォーマットでの出力を行うユーティティエージェント
+      url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/jsonoutput
+      method: POST
+      body:
+        user_input: :prePlannerPromptBuilder
+        # qwen3:235b-a22b-q4_K_M, qwen3:32b-fp16, qwen3:30b-a3b-q8_0, qwen3:30b-a3b-q4_K_M, #qwen3:32b-q8_0
+        model_name: qwen3:30b-a3b-q8_0
+
+  preExplorer_search:
+    agent: fetchAgent
+    console:
+      before: preExplorer_search
+      after: true
+    inputs:
+      # google検索を使用して情報収集するユーティティエージェント
+      url: http://127.0.0.1:8000/aiagent-api/v1/utility/google_search
+      method: POST
+      body:
+        queries: :prePlanner.result.querylist
+        num: 2
+
+  preExplorerPromptBuilder:
+    agent: stringTemplateAgent
+    inputs:
+      keywords: :source.text
+      target: :common_param.target
+      querylist: :prePlanner.result.querylist
+      google_search_result: :preExplorer_search.result
+    console:
+      before: preExplorerPromptBuilder start 
+    params:
+      template: |-
+
+        # 指示書
+        あなたは優れた情報収集者です。
+        以下の制約条件に従い、入力情報のExplore_Resultをもとにあなたの知見と合わせてポッドキャストの台本の作成に必要な情報（用語の意味や概念など）を日本語で整理してください。
+        
+        # 制約条件
+        - 出力は RESPONSE_FORMAT に従うこと
+
+        # 入力情報:        
+        ## ターゲットユーザー
+        ${target}
+
+        ## ユーザーからのキーワード
+        ${keywords}
+
+        ## Explore_Result
+        ### Queries
+        ${querylist}
+
+        ### google_search_result
+        ${google_search_result}
+
+        # RESPONSE_FORMAT:
+        #### 用語の意味や概念
+        // ここに用語の意味や概念を記載してください
+
+        #### 事実
+        // ここに事実を記載してください
+        
+        #### 一般的な見解
+        // 研究結果など客観的な事実を元にした見解を記載してください
+
+        /no_think
+
+  preExplorer:
+    agent: fetchAgent
+    console:
+      before: preExplorer start
+    inputs:
+      # google検索を使用して情報収集するユーティティエージェント
+      url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/explorer
+      method: POST
+      body:
+        user_input: :preExplorerPromptBuilder
+        model_name: qwen3:30b-a3b-q4_K_M
 
   # 2. Plnnerが章に分割しアウトラインを生成
   plannerPromptBuilder:
@@ -15,6 +133,7 @@ nodes:
     inputs:
       keywords: :source.text
       target: :common_param.target
+      infolist: :preExplorer.result
     console:
       before: plannerPrompt start 
       #after: true
@@ -23,20 +142,26 @@ nodes:
         
         # 指示書
         あなたは優れたポッドキャストの編集者兼ライターです。
-        以下の出力指示詳細と制約条件に従いユーザーから指定されたキーワードに関するポッドキャストの台本のアウトラインを出力してください。
+        関係する情報を元に、「${target}」向けに以下の出力指示詳細と制約条件に従いユーザー入力に関するポッドキャストの台本のアウトラインを出力してください。
         
         ## 出力指示詳細
-        - ターゲットユーザーは「${target}」とする
-        - キーワードに関する最新情報をgoogle検索を活用して収集しアウトライン出力の参考にすること
-        - 導入（トピックと情報源の概要説明）、本編（キーポイントの議論・展開）、結論（まとめ、考察）を含む一貫性のあるアウトラインとすること
-        - overviewには各章の概要を記載すること
-        - 本編は少なくとも２部以上の構成にし、あなたの知見をフルに活用して深掘りすること
-        - 各章で深掘りすべき具体的なキーワードも出力すること。キーワードには一般的な表現は使わず、具体的なキーワードを出力すること
-        - 出力は RESPONSE_FORMAT に従うこと。返却は JSON 形式で行い、コメントやマークダウンは含めないこと
+        1. アウトラインは導入・本編_1・本編_2・結論の4部構成とし、入力情報を元に各章のtitleを考えること。各章のタイトルは具体的なキーワードを考えること
+        2. 入力情報とタイトルを元に各章のoverviewを200-300文字程度で記載すること。あなたの知見をフルに活用して深掘りすること。
+        3. 導入（トピックと情報源の概要説明）、本編（キーポイントの議論・展開）、結論（まとめ、考察）を含む一貫性のあるoverviewとなるようにブラッシュアップすること
+        4. 各章で議論を深掘るためのgoogle検索用のクエリを出力すること。query_hintは最大1つまでとすること
+        5. 出力は RESPONSE_FORMAT に従うこと。返却は JSON 形式で行い、コメントやマークダウンは含めないこと
 
         # 制約条件
+        - 導入（トピックと情報源の概要説明）、本編（キーポイントの議論・展開）、結論（まとめ、考察）を含む一貫性のあるアウトラインとすること
         - 日本語で出力すること
         - query_hintは最大2つまでとすること
+
+        # 入力情報
+        ## ユーザー入力:
+        ${keywords}
+
+        ## 関係する情報
+        ${infolist}
 
         # RESPONSE FORMAT:
         {
@@ -44,7 +169,7 @@ nodes:
               {
                 "title": "...", // 導入・本編・結論のいずれかが分かるように明記するとともに、具体的なキーワードを考えること。例）【導入】LLM技術のトレンドとAIエージェントの動向
                 "overview": "...",
-                "query_hint": ["...", "..."]
+                "query_hint": ["...", "..."] // google検索用クエリ
               },
               {
                 "title": "...",
@@ -53,9 +178,6 @@ nodes:
               }
           ]
         }
-
-        # ユーザーからのキーワード:
-        ${keywords}
 
   planner:
     agent: fetchAgent
@@ -116,7 +238,7 @@ nodes:
 
               # 指示書
               あなたは優れた情報収集者です。
-              以下の制約条件に従い、入力情報のExplore_Resultをもとにあなたの知見と合わせてポッドキャストの台本の作成に必要な情報（用語の意味や概念など）を日本語で整理してください。
+              以下の制約条件に従い、入力情報のExplore_Resultをもとにあなたの知見と合わせてポッドキャストの台本の作成に必要な情報（用語の意味や概念、事実など）を日本語で整理してください。
               最後に、整理した情報と入力情報を元に、500~800文字程度で台本の初版を作成してください。
               
               # 制約条件
@@ -140,8 +262,8 @@ nodes:
               #### 用語の意味や概念
               // ここに用語の意味や概念を記載してください
 
-              #### 用語間の関係性
-              // ここに用語間の関係性を記載してください
+              #### 事実
+              // ここに事実を記載してください
               
               #### 一般的な見解
               // 研究結果など客観的な事実を元にした見解を記載してください
@@ -199,6 +321,7 @@ nodes:
       explorer_result: :explorer_mapper_output.text
       source: :source.text
       target: :common_param.target
+      infolist: :preExplorer.result
     console:
       before: generatorPromptBuilder start
       after: true
@@ -238,6 +361,9 @@ nodes:
         # 入力情報
         ## ユーザーからのキーワード
         ${source}
+
+        ## infolist
+        ${infolist}
 
         ## 全体のアウトラインと抽出・統合した情報
         ${explorer_result}

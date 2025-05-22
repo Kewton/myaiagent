@@ -1,6 +1,7 @@
 import requests
 from core.config import settings
 from app.schemas.standardAiAgent import ChatMessage
+from datetime import datetime
 from typing import List
 
 
@@ -74,51 +75,44 @@ def chatMlx(_messages: List[ChatMessage]) -> str:
 
 def extract_knowledge_from_text(_text, _model: str = "gemma3:27b-it-qat"):
     _query = f"""
-    # 命令指示書
-    入力情報と制約条件を元に下記手順に従い最高の成果物を生成してください。
+    # メタ情報:
+    - 現在の時刻は「{datetime.now()}」です。
     
-    1. 入力情報に目を通し、重要な情報が存在しない場合は、"情報なし"と返却すること
-    2. 重要度が高い順に最大８つの用語を抽出し一覧化すること。
-    3. 用語の意味や概念を整理すること。必要に応じてあなたの知見を付与すること。
-    4. 用語同士の関係性を整理すること。
-    5. 出力情報から不要な情報を削除すること。
+    # 命令指示書
+    あなたはプロのジャーナリストです。
+    コンテンツを作成するために収集した情報を整理しています。
+    制約条件に従い入力情報を元に下記手順で最高の成果物を生成してください。
+    
+    1. 入力情報から8つの用語を抽出し、成果物フォーマットの「用語名一覧」に列挙すること。
+    2. 抽出した用語の意味や概念を整理し、成果物フォーマットの「用語名の意味や概念」に列挙すること。必要に応じてあなたの知見を付与すること。
+    3. 入力情報から8つの事実を抽出し、成果物フォーマットの「事実」に列挙すること。可能な限り5W2Hを明らかにし定量的に表現すること。
 
     # 制約条件
-    - 日本語で返却すること
-    - 出力は RESPONSE_FORMAT に従うこと
-    - 返却は JSON 形式で行い、コメントやマークダウンは含めないこと
-    - 考察など独自の意見は含めないこと
+    - コードや論理式ではなく日本語のレポートとして出力すること
+    - 最終成果物のみ出力すること
 
     # 入力情報
     ```
     {_text}
     ```
 
-    # RESPONSE FORMAT:
-    ```json
-    {{
-        "用語名一覧": [
-            "用語の名前",
-            ・・・
-            ],
-        "用語の意味や概念": [
-            {{
-                "用語名": "用語の名前",
-                "用語の説明": "用語の意味や概念や定義。必要に応じて具体例を含む",
-            }},
-            ・・・
-            ],
-        "関係性": [
-            {{
-                "用語1": "用語の名前",
-                "用語2": "用語の名前",
-                "関係性": "用語1と用語2の関係性"
-            }},
-            ・・・
-            ]
-    }}
+    # 成果物フォーマット
     ```
+    ## 1.用語名一覧:
+        - "用語1"
+        - "用語2"
+        ・・・
 
+    ## 2.用語の意味や概念:
+        - "用語1": "用語の説明"
+        - "用語2": "用語の説明"
+        ・・・
+    
+    ## 3.事実:
+        - "事実1"
+        - "事実2"
+        ・・・
+    ```
     """
 
     _messages = []
@@ -126,11 +120,13 @@ def extract_knowledge_from_text(_text, _model: str = "gemma3:27b-it-qat"):
         {"role": "user", "content": _query}
     )
     
-    result = chatMlx(_messages)
-    # if _model == "mlx-community":
-    #     result = chatMlx(_messages)
-    # else:
-    #     result = chatOllama(_messages, _model)
+    # result = chatMlx(_messages)
+    if _model == "mlx-community":
+        print("chatMlx")
+        result = chatMlx(_messages)
+    else:
+        print("chatOllama")
+        result = chatOllama(_messages, _model)
     
     print("============================")
     print("extract_knowledge_from_text:")
