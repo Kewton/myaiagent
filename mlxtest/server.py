@@ -1,5 +1,5 @@
-# server.py  ── mlx_parallm なし版（バッチ処理対応版）
-
+import os
+from dotenv import load_dotenv  # 追加
 import asyncio
 import time
 import uuid
@@ -7,19 +7,16 @@ from fastapi import FastAPI, HTTPException
 from typing import List, Dict, Tuple, Any # Tuple, Any を追加
 from pydantic import BaseModel, Field
 from mlx_lm import load as load_model, generate as generate_once
+from mlx_lm.sample_utils import make_sampler
+
 
 # --- 設定値 ---
-# mlx-community/gemma3-12b-it-4bit-DWQ
-# mlx-community/gemma-3-12b-it-8bit
-# gemma-3-27b-it-8bit
-# mlx-community/gemma-3-12b-it-4bit, gemma-3-4b-it-qat-8bit
-# mlx-community/Qwen3-8B-4bit
-# mlx-community/gemma-3-4b-it-qat-4bit 5G前後
-# mlx-community/gemma-3-4b-it-qat-8bit 7G前後
-MODEL_DIR = "mlx-community/gemma-3-4b-it-qat-4bit"  # HF repo でもローカルでも可
-GPU_SLOTS = 6  # 12B-8bit はメモリ食いなので 1 スロット推奨。実験的に増やせる可能性あり。
-BATCH_MAX_SIZE = 6  # 1バッチあたりの最大リクエスト数（チューニング可能）
-BATCH_TIMEOUT_SECONDS = 2.0  # バッチ処理のタイムアウト（秒、チューニング可能）
+MODEL_DIR = os.environ.get("MODEL_DIR", "mlx-community/gemma-3-4b-it-qat-4bit")
+GPU_SLOTS = int(os.environ.get("GPU_SLOTS", 5))
+BATCH_MAX_SIZE = int(os.environ.get("BATCH_MAX_SIZE", 5))
+BATCH_TIMEOUT_SECONDS = float(os.environ.get("BATCH_TIMEOUT_SECONDS", 1.5))
+VERBOSE = os.environ.get("VERBOSE", "False").lower() in ("1", "true", "yes")
+
 
 # --- グローバル変数 ---
 model, tokenizer = load_model(MODEL_DIR)
@@ -38,7 +35,7 @@ request_queue: asyncio.Queue[Tuple[Any, asyncio.Future, str]] = asyncio.Queue()
 class ChatReq(BaseModel):
     prompt: str = Field(..., example="こんにちは、自己紹介してください。")
     max_tokens: int = 2048
-    temperature: float = 0.7  # フロントでは“temperature”で受け取る
+    temperature: float = 0.1
 
 
 class ChatResp(BaseModel):
@@ -50,11 +47,11 @@ class OpenAIChatMessage(BaseModel):
     content: str
 
 
-class OpenAIChatRequest(BaseModel): # OpenAI互換エンドポイント用のリクエストボディ（バリデーション用）
+class OpenAIChatRequest(BaseModel):
     messages: List[OpenAIChatMessage]
     model: str = MODEL_DIR
     max_tokens: int = 2048
-    temperature: float = 0.7
+    temperature: float = 0.1
 
 
 # --- バッチ処理ワーカ ---
@@ -133,6 +130,7 @@ async def process_batches():
                     else: # 未知のリクエストタイプ
                         raise ValueError(f"Unknown request type: {req_type}")
 
+                    sampler = make_sampler(temp=current_temperature)
                     # LLM実行時間の計測開始
                     llm_start = time.monotonic()
                     text_result = await loop.run_in_executor(
@@ -142,14 +140,16 @@ async def process_batches():
                             tokenizer,
                             prompt=current_prompt,
                             max_tokens=current_max_tokens,
-                            # temperature=current_temperature, # temperature を渡す
-                            # verbose=True # デバッグ用に詳細情報を出す場合
+                            sampler=sampler,
+                            verbose=VERBOSE  # デバッグ用に詳細情報を出す場合
                         ),
                     )
                     llm_elapsed = time.monotonic() - llm_start
                     llm_times.append(llm_elapsed)
                     if llm_elapsed >= 60:
                         print(f"LLM実行が60秒以上かかりました。current_prompt: {current_prompt}")
+                    if "javascript" in text_result or "JavaScript" in text_result:
+                        print(f"JavaScriptから開始しています。current_prompt: {current_prompt}")
                 # 結果をFutureにセット
                 if req_type == "completions":
                     future.set_result(ChatResp(text=text_result))
@@ -227,6 +227,6 @@ async def chat_completions_endpoint(req: OpenAIChatRequest):
     OpenAI Chat Completions 風インターフェース（stream 未対応）。
     """
     print("-- start --")
-    if not req.messages: # Pydanticで必須だが念のため
+    if not req.messages:  # Pydanticで必須だが念のため
         raise HTTPException(status_code=400, detail="messages is required")
     return await _queue_request_and_wait(req, "chat_completions")

@@ -3,3 +3,4 @@ mlx-lm==0.24.1
 fastapi
 uvicorn
 uvloop
+python-dotenv
