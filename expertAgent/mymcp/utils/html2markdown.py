@@ -19,11 +19,20 @@ def getMarkdown(url, isUpload=True):
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
         response = requests.get(url, headers=headers, timeout=10)
-
+        response.encoding = 'utf-8'
+        
         if response.status_code == 200:
             html_content = response.text
             # 関数を使ってHTMLをMarkdownに変換
-            markdown_content = clean_markdown_text(html_to_markdown(html_content))
+            md1 = html_to_markdown(html_content)
+            markdown_content = clean_markdown_text(md1)
+            if markdown_content.startswith("JavaScript"):
+                print("JavaScriptのページはスキップ")
+                print(markdown_content)
+                print("変換前１")
+                print(html_content)
+                print("変換前１")
+                print(md1)
             result["state"] = "success"
             result["result"] = markdown_content
             
@@ -53,7 +62,7 @@ def getMarkdown(url, isUpload=True):
             return str(response.status_code) + "エラー"
     except Exception as e:
         print(e)
-        result["result"] = e
+        result["result"] = str(e)
         return result
 
 
