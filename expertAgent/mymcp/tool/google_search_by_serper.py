@@ -118,6 +118,9 @@ async def get_overview_by_google_serper(queries: List[str], num: int = 3) -> str
 
 
 def get_entry_summary(_organic):
+    if not isinstance(_organic, dict):
+        print(f"Warning: _organic is not dict: {_organic}")
+        return {}
     print(f"start {_organic['title']}")
     title = _organic['title']
     link = _organic['link']
