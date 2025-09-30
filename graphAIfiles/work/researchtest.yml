@@ -1,0 +1,158 @@
+version: 0.5
+nodes:
+  # 1. ユーザーの興味を入力
+  source:
+    value:
+      text: 2025年5月4日に開催された井上尚弥の試合結果と今回の調子と今後の展望
+  
+  common_param:
+    value:
+      target: 30代男性、会社員
+
+  # 2. ユーザーの興味を元にポッドキャストの台本を作成するための情報収集の観点を整理する
+  plannerPromptBuilder:
+    agent: stringTemplateAgent
+    inputs:
+      keywords: :source.text
+    console:
+      before: plannerPromptBuilder start 
+      #after: true
+    params:
+      template: |-
+        
+        # 指示書
+        あなたは優れたポッドキャストの編集者兼ライターです。
+        ユーザーの興味を元にポッドキャストキャストの台本を作成するための情報収集の観点の整理を行ってください。
+        なお、1つの観点に対してつの問を作成してください。
+          NG例:
+            - 明日の天気と気候が商品の売上に与える影響
+          OK例:
+            - 明日の天気
+            - 気候が商品の売上に与える影響
+        また、それぞれの観点で独立して情報収集が可能なように、観点は5W2Hを明確にしてください。
+          NG例:
+            - 東京都の今年の夏の平均気温の予測
+            - 昨年の8月の平均気温
+          OK例:
+            - 東京都の2025年の夏の平均気温の予測
+            - 東京都の2024年8月の平均気温
+
+        ## 出力指示詳細
+        1. ユーザーの興味に沿ったポッドキャストの台本を作成するための情報収集の観点を整理する
+        2. 1つの観点に複数の問いが含まれている場合は、問いを分割する
+        3. 観点の5W2Hを明確にする
+
+        # 制約条件
+        - 日本語で出力すること
+        - 出力は RESPONSE_FORMAT に従うこと。返却は JSON 形式で行い、コメントやマークダウンは含めないこと
+        - クエリは最低でも2つ出力し、最大4つまで出力すること
+
+        # ユーザーの興味:
+        ${keywords}
+
+        # RESPONSE FORMAT:
+        {
+          "querylist": [
+              "情報収集の観点1",
+              "情報収集の観点2",
+              "情報収集の観点3"
+          ]
+        }
+
+
+  Planner:
+    agent: fetchAgent
+    console:
+      before: Planner start
+      after: true
+    inputs:
+      # jsonフォーマットでの出力を行うユーティティエージェント
+      url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/jsonoutput
+      method: POST
+      body:
+        user_input: :plannerPromptBuilder
+        model_name: qwen3:30b-a3b-q8_0
+  
+  # 3. ユーザーの興味を元に情報収集を行う
+  Explorer:
+    agent: fetchAgent
+    console:
+      before: Explorer
+      after: true
+    inputs:
+      # google検索を使用して情報収集するユーティティエージェント
+      url: http://127.0.0.1:8000/aiagent-api/v1/utility/google_search
+      method: POST
+      body:
+        queries: :Planner.result.querylist
+        num: 3
+  
+  # 4. 情報収集の結果を元にポッドキャストの台本を作成するための情報を整理する
+  extracterPromptBuilder:
+    agent: stringTemplateAgent
+    inputs:
+      keywords: :source.text
+      target: :common_param.target
+      querylist: :Planner.result.querylist
+      infolist: :Explorer.result
+    console:
+      before: extracterPromptBuilder start 
+      #after: true
+    params:
+      template: |-
+        
+        # 指示書
+        あなたは優れた情報収集者です。
+        以下の前提条件と制約条件に従い、入力情報を元にポッドキャストの台本の作成に必要な情報を日本語で整理してください
+
+        ## 出力指示詳細
+        1. ターゲットユーザーの興味と情報収集の観点から、情報を整理する観点を洗い出す
+        2. 情報収集結果からFAQを集約する
+        3. ターゲットやユーザーの興味に沿ったFAQを抽出・統合する
+        4. 情報収集結果から事実を抽出する
+        5. ターゲットやユーザーの興味に沿った事実を抽出・統合する
+
+        # 前提条件      
+        - 本日は2025年5月27日です。
+
+        # 制約条件
+        - 出力は RESPONSE_FORMAT に従うこと
+        - 整理した情報が、ターゲットの興味と情報収集の観点と整合性が取れていること
+        - 整理した情報が、情報収集結果と整合性が取れていること
+
+        # 入力情報:        
+        ## ターゲット
+        ${target}
+
+        ## ユーザーの興味
+        ${keywords}
+        
+        ## 情報収集の観点
+        ${querylist}
+
+        ## 情報収集結果
+        ${infolist}
+
+        # RESPONSE_FORMAT:
+        ```md
+        # FAQ
+        // ここにFAQを記載してください
+
+        # 事実
+        // ここに事実を記載してください
+        ```
+        
+        # 生成開始
+
+  extracter:
+    agent: fetchAgent
+    console:
+      before: extracter start
+      after: true
+    inputs:
+      url: http://127.0.0.1:8000/aiagent-api/v1/aiagent/utility/explorer
+      method: POST
+      body:
+        user_input: :extracterPromptBuilder
+        model_name: qwen3:30b-a3b-q8_0
+    isResult: true
